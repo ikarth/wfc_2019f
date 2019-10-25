@@ -1,0 +1,89 @@
+digraph {
+        things_to_implement [label="{Things that aren't implemented yet|Intermediate visualization|timing and profiling|performance statistics|outputting images|most heuristics|removing ground patterns|rotated patterns}", shape=record, fillcolor="cyan", style=filled]
+        read_data [label="Read data from XML", fillcolor="cyan", shape=box, style=filled]
+        read_data -> input_data
+        input_data [shape=record, label="XML"]
+        input_data -> execute_wfc
+        solver [label="Solver", shape=house]
+        solver -> make_wave
+        make_wave -> remove_patterns
+        remove_patterns [label="Remove ground patterns", fillcolor="cyan", style=filled]
+        input_data -> remove_patterns
+        input_data -> solver
+        remove_patterns -> solver_run [headport=n]
+        subgraph cluster_solver_run {
+                 label="wfc_solver.py"
+                 
+                 solver_run [label="solver.run()"]
+                 solver_observe [label="solver.observe()"]
+                 solver_propagate [label="solver.propagate()"]
+                 solver_on_backtrack [label="solver.onBacktrack()", shape=invhouse]
+                 solver_on_choice [label="solver.onChoice()", shape=invhouse]
+                 on_choice [label="onChoice()", shape=note]
+                 on_backtrack [label="onBacktrack()", shape=note, fillcolor="cyan", style=filled]
+                 solver_if_backtracking [label="if backtracking", shape=diamond]
+                 pattern_heuristic [label="pattern heuristic", shape=note]
+                 location_heuristic [label="location heuristic", shape=note]
+
+
+                 {rank=same pattern_heuristic location_heuristic}
+                 solver_run -> solver_check_feasible
+                 solver_check_feasible -> solver_propagate
+                 solver_propagate -> solver_observe
+                 solver_observe -> pattern_heuristic
+                 solver_observe -> location_heuristic
+                 solver_observe -> solver_on_choice
+                 solver_on_choice -> on_choice
+                 solver_recurse -> except_contradictions [color=red]
+                 solver_on_choice -> solver_if_finished
+                 solver_recurse -> solver_run [headport=n, tailport=w]
+                 solver_if_finished [shape=diamond]
+                 solver_if_finished -> solver_recurse [splines=polyline, dir=both, arrowhead=dotvee, arrowtail=dot, tailport=s, headport=n, color="black:green:black"]
+                 except_contradictions -> solver_if_backtracking
+                 solver_if_backtracking -> solver_on_backtrack [label="Yes"]
+                 solver_on_backtrack -> on_backtrack
+                 on_backtrack -> solver_run [headport=n]
+                 solver_if_backtracking -> cant_solve [splines=curved, label="No", dir=both, arrowhead=dotvee, arrowtail=dot, tailport=e, headport=ne, color="grey"]
+        }
+        solver_if_finished -> solver_solution [tailport=w, color="black:blue:black"]
+
+        execute_wfc [shape=invhouse, fillcolor="cyan", style=filled]
+        execute_wfc -> import_image
+        import_image [shape=box]
+        import_image -> make_tile_catalog
+        subgraph cluster_tile_py {
+                 label="wfc_tiles.py"
+                 make_tile_catalog -> image_to_tiles
+        }
+        image_to_tiles -> tile_catalog
+        tile_catalog [label="Tile Catalog|{dictionary of tiles|image in tile IDs|set of tiles|frequency of tile occurance}", shape=record]
+        subgraph cluster_patterns {
+                 label="wfc_patterns.py"
+                 tile_catalog -> make_pattern_catalog
+                 {rank=same unique_patterns_2d rotate_or_reflect}
+                 make_pattern_catalog -> unique_patterns_2d -> rotate_or_reflect -> unique_patterns_2d
+                 make_pattern_catalog [fillcolor="cyan", style=filled]
+                 rotate_or_reflect [fillcolor="cyan", style=filled]
+        }
+        unique_patterns_2d -> pattern_catalog
+        pattern_catalog [label="Pattern Catalog|{dictionary of patterns|ordered list of pattern weights|ordered list of pattern contents}", shape=record]
+        pattern_catalog -> extract_adjacency
+        subgraph cluster_adjacency {
+                 extract_adjacency -> is_valid_overlap
+        }
+        extract_adjacency -> adjacency_relations
+        adjacency_relations [label="{Adjacency Relations|tuples of (edge,pattern,pattern)}", shape=record]
+        adjacency_relations -> combine_inputs
+        combine_inputs -> adjacency_matrix
+        adjacency_matrix [label="{Adjacency Matrix|boolean matrix of pattern x pattern x direction}", shape=record]
+        adjacency_matrix -> solver
+        pattern_catalog -> solver
+        cant_solve [label="Can't Solve", shape=box]
+        solver_solution [shape=record, label="Solution|grid of pattern IDs"]
+        solver_solution -> visualizer
+        visualizer -> output_image
+        output_image [shape=box, label="Output Image", style=filled, fillcolor=cyan]
+        pattern_catalog -> visualizer
+        tile_catalog -> visualizer
+        visualizer [fillcolor=cyan, style=filled]
+}
