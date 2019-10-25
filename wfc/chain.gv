@@ -1,0 +1,16 @@
+digraph {
+        read_xml_command -> import_image -> make_tile_catalog -> make_pattern_catalog -> make_adjacency_matrix -> solve_constraint_problem -> output_solution_image
+        make_tile_catalog -> output_solution_image
+        make_tile_catalog -> instrumentation [color=gray]
+        make_pattern_catalog -> instrumentation [color=gray]
+        make_adjacency_matrix -> instrumentation [color=gray]
+        solve_constraint_problem -> instrumentation [color=gray]
+        output_solution_image -> visualization [color=gray]
+        make_tile_catalog -> visualization [color=gray]
+        make_pattern_catalog -> visualization [color=gray]
+        make_adjacency_matrix -> visualization [color=gray]
+        solve_constraint_problem -> visualization [color=gray]
+        visualization [color=gray, fontcolor=gray]
+        instrumentation [color=gray, fontcolor=gray]
+        visualization -> make_tile_catalog [color=magenta]
+}

@@ -1,0 +1,34 @@
+digraph {
+        wfc_run -> wfc_control
+        wfc_control -> wfc_utilities
+        wfc_control -> wfc_solver
+        wfc_solver -> numpy
+        wfc_tiles -> numpy
+        wfc_patterns -> numpy
+        wfc_tiles -> wfc_utilities
+        wfc_control -> wfc_tiles
+        wfc_control -> wfc_patterns
+        wfc_patterns -> wfc_utilities
+        wfc_tiles -> imageio
+        wfc_control -> wfc_adjacency
+        wfc_control -> wfc_visualize
+        wfc_visualize -> matplotlib
+        wfc_visualize -> wfc_utilities
+        wfc_adjacency -> wfc_utilities
+        wfc_adjacency -> numpy
+        wfc_control -> wfc_instrumentation
+        
+        wfc_run
+        wfc_control []
+        wfc_solver
+        numpy [color=gray, fontcolor=gray]
+        wfc_tiles
+        wfc_patterns [style=filled, fillcolor=cyan]
+        wfc_utilities
+        imageio [color=gray, fontcolor=gray]
+        wfc_adjacency [style=filled, fillcolor=cyan]
+        wfc_visualize [style=filled, fillcolor=cyan]
+        matplotlib [color=gray, fontcolor=gray]
+        wfc_instrumentation [style=filled, fillcolor=cyan]
+        label="Modules in WFC 19f"
+}
