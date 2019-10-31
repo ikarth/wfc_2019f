@@ -93,6 +93,7 @@ def figure_false_color_tile_grid(tile_grid, filename="./false_color_tiles.png"):
 
 
 def render_pattern(render_pattern, tile_catalog):
+  """Turn a pattern into an image"""
     rp_iter = np.nditer(render_pattern, flags=['multi_index'])
     output = np.zeros(render_pattern.shape + (3,), dtype=np.uint32)
     while not rp_iter.finished:
@@ -120,4 +121,5 @@ def figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, patte
         counter += 1
     plt.savefig(output_filename + "_patterns.pdf", bbox_inches="tight")
     plt.close()
+
 
