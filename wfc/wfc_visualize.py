@@ -1,5 +1,6 @@
 "Visualize the patterns into tiles and so on."
 
+from wfc_patterns import pattern_grid_to_tiles
 import matplotlib.pyplot as plt
 import numpy as np
 import imageio
@@ -89,19 +90,21 @@ def figure_false_color_tile_grid(tile_grid, filename="./false_color_tiles.png"):
     plt.savefig(filename, bbox_inches="tight")
     plt.close()
     
-
+def figure_tile_grid(tile_grid, tile_catalog, tile_size):
+  img = tile_grid_to_image(tile_grid, tile_catalog, tile_size)
+  
 
 
 def render_pattern(render_pattern, tile_catalog):
   """Turn a pattern into an image"""
-    rp_iter = np.nditer(render_pattern, flags=['multi_index'])
-    output = np.zeros(render_pattern.shape + (3,), dtype=np.uint32)
-    while not rp_iter.finished:
-        # Note that this truncates images with more than 3 channels down to just the channels in the output.
-        # If we want to have alpha channels, we'll need a different way to handle this.
-        output[rp_iter.multi_index] = np.resize(tile_catalog[render_pattern[rp_iter.multi_index]], output[rp_iter.multi_index].shape)
-        rp_iter.iternext()     
-    return output
+  rp_iter = np.nditer(render_pattern, flags=['multi_index'])
+  output = np.zeros(render_pattern.shape + (3,), dtype=np.uint32)
+  while not rp_iter.finished:
+    # Note that this truncates images with more than 3 channels down to just the channels in the output.
+    # If we want to have alpha channels, we'll need a different way to handle this.
+    output[rp_iter.multi_index] = np.resize(tile_catalog[render_pattern[rp_iter.multi_index]], output[rp_iter.multi_index].shape)
+    rp_iter.iternext()
+  return output
 
 def figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, pattern_width, output_filename="pattern_catalog"):
     s_columns = 24 // min(24, pattern_width)
@@ -123,3 +126,106 @@ def figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, patte
     plt.close()
 
 
+def render_tiles_to_output(tile_grid, tile_catalog, tile_size, output_filename):
+  img = tile_grid_to_image(tile_grid, tile_catalog, tile_size)
+  imageio.imwrite(output_filename, img.astype(np.uint8))
+
+
+# def render_patterns_to_output(pattern_grid, pattern_catalog, tile_catalog, tile_size, output_filename):
+#   tile_grid = pattern_grid_to_tiles(pattern_grid, pattern_catalog)
+#   img = tile_grid_to_image(tile_grid, tile_catalog, tile_size)
+#   imageio.imwrite(output_filename, img)
+
+    
+# def render_patterns_to_output(output_tile_grid, wave_table, partial=False, visualize=True):
+#     pattern_grid = np.array(output_tile_grid, dtype=np.int64)
+#     has_gaps = np.any(np.count_nonzero(wave_table, axis=2) != 1) 
+#     if has_gaps:
+#         pattern_grid = np.array(partial_output_grid, dtype=np.int64)
+#     render_grid = np.full(pattern_grid.shape,  WFC_PARTIAL_BLANK, dtype=np.int64)
+#     pattern_center = wfc_state.wfc_ns.pattern_center
+#     for row in range(wfc_state.rows):
+#         if WFC_DEBUGGING:
+#             print()
+#         for column in range(wfc_state.columns):
+#             if (len(pattern_grid.shape) > 2):
+#                 if WFC_DEBUGGING:
+#                     print('[',end='')
+#                 pattern_list = []
+#                 for z in range(wfc_state.number_of_patterns):
+#                     pattern_list.append(pattern_grid[(row,column,z)])
+#                 pattern_list = [pattern_grid[(row,column,z)] for z in range(wfc_state.number_of_patterns) if (pattern_grid[(row,column,z)] != -1) and (pattern_grid[(row,column,z)] != WFC_NULL_VALUE)]
+#                 for pl_count, the_pattern in enumerate(pattern_list):
+#                     if WFC_DEBUGGING:
+#                         print(the_pattern, end='')
+#                     the_pattern_tiles = wfc_state.wfc_ns.pattern_catalog[the_pattern][pattern_center[0]:pattern_center[0]+1,pattern_center[1]:pattern_center[1]+1]
+#                     if WFC_DEBUGGING:
+#                         print(the_pattern_tiles, end=' ')
+#                     render_grid = blit(render_grid, the_pattern_tiles, (row,column), layer = pl_count)
+#                 if WFC_DEBUGGING:
+#                     print(']',end=' ')
+#             else:
+#                 if WFC_DEBUGGING:
+#                     print(pattern_grid[(row,column)], end=',')
+#                 if WFC_NULL_VALUE != pattern_grid[(row,column)]:
+#                     the_pattern = wfc_state.wfc_ns.pattern_catalog[pattern_grid[(row,column)]]
+#                     p_x = wfc_state.wfc_ns.pattern_center[0]
+#                     p_y = wfc_state.wfc_ns.pattern_center[1]
+#                     the_pattern = the_pattern[p_x:p_x+1, p_y:p_y+1]
+#                     render_grid = blit(render_grid, the_pattern, (row, column))
+#     if WFC_DEBUGGING:
+#         print("\nrender grid")
+#         print(render_grid)
+#     ptr = tiles_to_images(wfc_state.wfc_ns, render_grid, wfc_state.wfc_ns.tile_catalog, wfc_state.wfc_ns.tile_size, visualize=True, partial=partial).astype(np.uint8)
+#     if WFC_DEBUGGING:
+#         print(f"ptr {ptr}")
+        
+#     if visualize:
+#         fig, ax = subplots(figsize=(16,16))
+#         #ax.grid(color="magenta", linewidth=1.5)
+#         ax.tick_params(direction='in', bottom=False, left=False)
+
+#         im = ax.imshow(ptr)
+#         for axis, dim in zip([ax.xaxis, ax.yaxis],[wfc_state.columns, wfc_state.rows]):
+#             axis.set_ticks(np.arange(-0.5, dim + 0.5, 1))
+#             axis.set_ticklabels([])
+#     #print(ptr)
+#     imageio.imwrite(wfc_state.wfc_ns.output_filename, ptr)
+
+
+
+def figure_adjacencies(adjacency_relations_list, pattern_catalog, tile_catalog):
+  print(adjacency_relations_list)
+  return
+    
+# def figure_adjacencies(wfc_ns, adjacency_relations_list):
+#     try:
+#         figadj = figure(figsize=(12,1+len(adjacency_relations_list)), edgecolor='b')
+#         title('Adjacencies')
+#         max_offset = max([abs(x) for x in list(itertools.chain.from_iterable(wfc_ns.adjacency_directions.values()))])
+
+#         for i,adj_rel in enumerate(adjacency_relations_list):
+#             preview_size = (wfc_ns.pattern_width + max_offset*2)
+#             preview_adj = np.full((preview_size,preview_size), -1, dtype=np.int64)    
+#             upper_left_of_center = CoordXY(x=max_offset,y=max_offset)#(ns.pattern_width, ns.pattern_width)
+#             #print(f"adj_rel: {adj_rel}")
+#             blit(preview_adj, wfc_ns.patterns[adj_rel[1]], upper_left_of_center, check=True)
+#             blit(preview_adj, wfc_ns.patterns[adj_rel[2]], 
+#                  (upper_left_of_center.y + wfc_ns.adjacency_directions[adj_rel[0]].y, 
+#                   upper_left_of_center.x + wfc_ns.adjacency_directions[adj_rel[0]].x), check=True)
+
+#             ptr = tiles_to_images(wfc_ns, preview_adj, wfc_ns.tile_catalog, wfc_ns.tile_size, visualize=True).astype(np.uint8)
+            
+#             subp = subplot(math.ceil(len(adjacency_relations_list) / 4),4, i+1)
+#             spi = subp.imshow(ptr)
+#             spi.axes.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+#             title(f'{i}: ({adj_rel[1]} + {adj_rel[2]}) by\n{wfc_ns.adjacency_directions[adj_rel[0]]}', fontsize=10)
+            
+#             indicator_rect = matplotlib.patches.Rectangle((upper_left_of_center.y - 0.51, upper_left_of_center.x - 0.51), wfc_ns.pattern_width, wfc_ns.pattern_width, Fill=False, edgecolor='b', linewidth=3.0, linestyle=':')
+            
+#             spi.axes.add_artist(indicator_rect)
+#             spi.axes.grid(False)
+#         plt.savefig(wfc_ns.output_filename + "_adjacency.pdf", bbox_inches="tight")
+#         plt.close()
+#     except ValueError as e:
+#         print(e)
