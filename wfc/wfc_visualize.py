@@ -3,10 +3,11 @@
 from wfc_patterns import pattern_grid_to_tiles
 import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib
 import imageio
 import math
 import pathlib
-
+import itertools
 
 ## Helper functions
 RGB_CHANNELS = 3
@@ -131,6 +132,65 @@ def render_tiles_to_output(tile_grid, tile_catalog, tile_size, output_filename):
   imageio.imwrite(output_filename, img.astype(np.uint8))
 
 
+def blit(destination, sprite, upper_left, layer = False, check=False):
+    """
+    Blits one multidimensional array into another numpy array.
+    """
+    lower_right = [((a + b) if ((a + b) < c) else c) for a,b,c in zip(upper_left, sprite.shape, destination.shape)]
+    if min(lower_right) < 0:
+        return
+    
+    for i_index, i in enumerate(range(upper_left[0], lower_right[0])):
+        for j_index, j in enumerate(range(upper_left[1], lower_right[1])):
+            if (i >= 0) and (j >= 0):
+                if len(destination.shape) > 2:
+                    destination[i, j, layer] = sprite[i_index, j_index]
+                else:
+                    if check:
+                        if (destination[i, j] == sprite[i_index, j_index]) or (destination[i, j] == -1) or {sprite[i_index, j_index] == -1}:
+                            destination[i, j] = sprite[i_index, j_index]
+                        else:
+                            print("ERROR, mismatch: destination[{i},{j}] = {destination[i, j]}, sprite[{i_index}, {j_index}] = {sprite[i_index, j_index]}")
+                    else:
+                        destination[i, j] = sprite[i_index, j_index]
+    return destination
+
+  
+def figure_adjacencies(adjacency_relations_list, adjacency_directions, tile_catalog, patterns, pattern_width, tile_size, output_filename="adjacency"):
+#    try:
+        adjacency_directions_list = dict(adjacency_directions).values()
+        figadj = plt.figure(figsize=(12,1+len(adjacency_relations_list)), edgecolor='b')
+        plt.title('Adjacencies')
+        max_offset = max([abs(x) for x in list(itertools.chain.from_iterable(adjacency_directions_list))])
+
+        for i,adj_rel in enumerate(adjacency_relations_list):
+            preview_size = (pattern_width + max_offset * 2)
+            preview_adj = np.full((preview_size, preview_size), -1, dtype=np.int64)    
+            upper_left_of_center = [max_offset,max_offset]
+
+            blit(preview_adj, patterns[adj_rel[1]], upper_left_of_center, check=True)
+            blit(preview_adj, patterns[adj_rel[2]],
+                 (upper_left_of_center[1] + adj_rel[0][1], 
+                  upper_left_of_center[0] + adj_rel[0][0]), check=True)
+
+            ptr = tile_grid_to_image(preview_adj, tile_catalog, tile_size, visualize=True).astype(np.uint8)
+            
+            subp = plt.subplot(math.ceil(len(adjacency_relations_list) / 4),4, i+1)
+            spi = subp.imshow(ptr)
+            spi.axes.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+            plt.title(f'{i}: ({adj_rel[1]} +\n{adj_rel[2]})\n by {adj_rel[0]}', fontsize=10)
+            
+            indicator_rect = matplotlib.patches.Rectangle((upper_left_of_center[1] - 0.51, upper_left_of_center[0] - 0.51), pattern_width, pattern_width, Fill=False, edgecolor='b', linewidth=3.0, linestyle=':')
+            
+            spi.axes.add_artist(indicator_rect)
+            spi.axes.grid(False)
+        plt.savefig(output_filename + "_adjacency.pdf", bbox_inches="tight")
+        plt.close()
+#    except ValueError as e:
+#        print(e)
+
+  
+
 # def render_patterns_to_output(pattern_grid, pattern_catalog, tile_catalog, tile_size, output_filename):
 #   tile_grid = pattern_grid_to_tiles(pattern_grid, pattern_catalog)
 #   img = tile_grid_to_image(tile_grid, tile_catalog, tile_size)
@@ -194,9 +254,9 @@ def render_tiles_to_output(tile_grid, tile_catalog, tile_size, output_filename):
 
 
 
-def figure_adjacencies(adjacency_relations_list, pattern_catalog, tile_catalog):
-  print(adjacency_relations_list)
-  return
+#def figure_adjacencies(adjacency_relations_list, pattern_catalog, tile_catalog):
+#  print(adjacency_relations_list)
+#  return
     
 # def figure_adjacencies(wfc_ns, adjacency_relations_list):
 #     try:
