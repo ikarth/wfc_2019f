@@ -63,7 +63,11 @@ def tile_grid_to_image(tile_grid, tile_catalog, tile_size, visualize=False, part
                         ## be able to show empty cells. Therefore, in visualize mode,
                         ## we use -1 as a magic number for a non-existant tile.
                         if visualize and ((-1 == tile) or (-2 == tile)):
-                            pass
+                            if (-1 == tile):
+                                if 0 == (i + j) % 2:
+                                    pixel = [255, 0, 255]
+                            if (-2 == tile):
+                                pixel = [0, 255, 255]
                         else:
                             pixel = tile_catalog[tile][u,v]
                         # TODO: will need to change if using an image with more than 3 channels
@@ -119,7 +123,7 @@ def figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, patte
         sp = plt.subplot(s_rows, s_columns, counter + 1)
         spi = sp.imshow(ptr)
         spi.axes.xaxis.set_label_text(f'({pattern_weights[i]})')
-        sp.set_title(f"{counter}")
+        sp.set_title(f"{counter}\n{i}", fontsize=3)
         spi.axes.tick_params(labelleft=False,labelbottom=False, left=False, bottom=False)
         spi.axes.grid(False)
         counter += 1
@@ -178,7 +182,7 @@ def figure_adjacencies(adjacency_relations_list, adjacency_directions, tile_cata
             subp = plt.subplot(math.ceil(len(adjacency_relations_list) / 4),4, i+1)
             spi = subp.imshow(ptr)
             spi.axes.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
-            plt.title(f'{i}: ({adj_rel[1]} +\n{adj_rel[2]})\n by {adj_rel[0]}', fontsize=10)
+            plt.title(f'{i}:\n({adj_rel[1]} +\n{adj_rel[2]})\n by {adj_rel[0]}', fontsize=10)
             
             indicator_rect = matplotlib.patches.Rectangle((upper_left_of_center[1] - 0.51, upper_left_of_center[0] - 0.51), pattern_width, pattern_width, Fill=False, edgecolor='b', linewidth=3.0, linestyle=':')
             
