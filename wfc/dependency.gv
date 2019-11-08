@@ -17,7 +17,10 @@ digraph {
         wfc_adjacency -> wfc_utilities
         wfc_adjacency -> numpy
         wfc_control -> wfc_instrumentation
-        
+
+        implemented [style=filled, fillcolor=gray]
+        partial [style=filled, fillcolor=cyan]
+        unimplemented [style=filled, fillcolor=firebrick]
         wfc_run
         wfc_control []
         wfc_solver
@@ -26,9 +29,9 @@ digraph {
         wfc_patterns [style=filled, fillcolor=cyan]
         wfc_utilities
         imageio [color=gray, fontcolor=gray]
-        wfc_adjacency [style=filled, fillcolor=cyan]
+        wfc_adjacency 
         wfc_visualize [style=filled, fillcolor=cyan]
         matplotlib [color=gray, fontcolor=gray]
-        wfc_instrumentation [style=filled, fillcolor=cyan]
+        wfc_instrumentation [style=filled, fillcolor=firebrick]
         label="Modules in WFC 19f"
 }
