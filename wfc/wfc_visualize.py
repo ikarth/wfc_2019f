@@ -1,6 +1,6 @@
 "Visualize the patterns into tiles and so on."
 
-from wfc_patterns import pattern_grid_to_tiles
+from wfc.wfc_patterns import pattern_grid_to_tiles
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib
