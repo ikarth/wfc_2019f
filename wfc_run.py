@@ -16,7 +16,7 @@ default_backtracking = False
 for xnode in xdoc.getroot():
     name = xnode.get('name', "NAME")
     if "overlapping" == xnode.tag:
-        seed = 3262
+        #seed = 3262
         tile_size = int(xnode.get('tile_size', 1))
         # seed for random generation, can be any number
         tile_size = int(xnode.get('tile_size', 1)) # size of tile, in pixels
@@ -34,7 +34,7 @@ for xnode in xdoc.getroot():
         backtracking = string2bool(xnode.get('backtracking', default_backtracking))
         for x in range(screenshots):
             print(f"-: {name} > {x}")
-            solution = wfc_control.execute_wfc(name, tile_size=tile_size, pattern_width=pattern_width, rotations=symmetry, output_size=generated_size, ground=ground)
+            solution = wfc_control.execute_wfc(name, tile_size=tile_size, pattern_width=pattern_width, rotations=symmetry, output_size=generated_size, ground=ground, output_periodic=periodic_output, input_periodic=periodic_input)
             if solution is None:
                 print(None)
             else:
