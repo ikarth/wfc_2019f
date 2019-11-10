@@ -75,24 +75,24 @@ def tile_grid_to_image(tile_grid, tile_catalog, tile_size, visualize=False, part
     return new_img
 
 
-def figure_list_of_tiles(unique_tiles, tile_catalog, fname="list_of_tiles.pdf"):
+def figure_list_of_tiles(unique_tiles, tile_catalog, output_filename="list_of_tiles"):
   plt.figure(figsize=(4,4), edgecolor='k', frameon=True)
   plt.title('Extracted Tiles')
   s = math.ceil(math.sqrt(len(unique_tiles)))+1
   for i,tcode in enumerate(unique_tiles[0]):
     sp = plt.subplot(s, s, i + 1).imshow(tile_catalog[tcode])
     sp.axes.tick_params(labelleft=False, labelbottom=False, length=0)
-    plt.title(f"{i} : {tcode}", fontsize=10)
+    plt.title(f"{i}\n{tcode}", fontsize=10)
     sp.axes.grid(False)
-  fp = pathlib.Path(fname)
+  fp = pathlib.Path(output_filename + ".pdf")
   plt.savefig(fp, bbox_inches="tight")
   plt.close()
 
-def figure_false_color_tile_grid(tile_grid, filename="./false_color_tiles.png"):
+def figure_false_color_tile_grid(tile_grid, output_filename="./false_color_tiles"):
     figure_plot = plt.matshow(tile_grid, cmap='gist_ncar',extent=(0, tile_grid.shape[1], tile_grid.shape[0], 0))
     plt.title('False Color Map of Tiles in Input Image');
     figure_plot.axes.grid(None)
-    plt.savefig(filename, bbox_inches="tight")
+    plt.savefig(output_filename + ".png", bbox_inches="tight")
     plt.close()
     
 def figure_tile_grid(tile_grid, tile_catalog, tile_size):
@@ -159,27 +159,62 @@ def blit(destination, sprite, upper_left, layer = False, check=False):
                         destination[i, j] = sprite[i_index, j_index]
     return destination
 
+class InvalidAdjacency(Exception):
+  """The combination of patterns and offsets results in pattern combinations that don't match."""
+  pass
   
-def figure_adjacencies(adjacency_relations_list, adjacency_directions, tile_catalog, patterns, pattern_width, tile_size, output_filename="adjacency"):
+def validate_adjacency(pattern_a, pattern_b, preview_size, upper_left_of_center, adj_rel):
+  preview_adj_a_first = np.full((preview_size, preview_size), -1, dtype=np.int64)
+  preview_adj_b_first = np.full((preview_size, preview_size), -1, dtype=np.int64)      
+  blit(preview_adj_b_first, pattern_b,
+       (upper_left_of_center[1] + adj_rel[0][1],
+        upper_left_of_center[0] + adj_rel[0][0]), check=True)
+  blit(preview_adj_b_first, pattern_a, upper_left_of_center, check=True)
+  
+  blit(preview_adj_a_first, pattern_a, upper_left_of_center, check=True)
+  blit(preview_adj_a_first, pattern_b,
+       (upper_left_of_center[1] + adj_rel[0][1],
+        upper_left_of_center[0] + adj_rel[0][0]), check=True)
+  if not np.array_equiv(preview_adj_a_first, preview_adj_b_first):
+    print(adj_rel)
+    print(pattern_a)
+    print(pattern_b)
+    print(preview_adj_a_first)
+    print(preview_adj_b_first)
+    raise InvalidAdjacency
+
+  
+  
+def figure_adjacencies(adjacency_relations_list, adjacency_directions, tile_catalog, patterns, pattern_width, tile_size, output_filename="adjacency", render_b_first=False):
 #    try:
-        adjacency_directions_list = dict(adjacency_directions).values()
-        figadj = plt.figure(figsize=(12,1+len(adjacency_relations_list)), edgecolor='b')
+        adjacency_directions_list = list(dict(adjacency_directions).values())
+        figadj = plt.figure(figsize=(12,1+len(adjacency_relations_list[:64])), edgecolor='b')
         plt.title('Adjacencies')
         max_offset = max([abs(x) for x in list(itertools.chain.from_iterable(adjacency_directions_list))])
 
-        for i,adj_rel in enumerate(adjacency_relations_list):
+        for i,adj_rel in enumerate(adjacency_relations_list[:64]):
+            print(i)
             preview_size = (pattern_width + max_offset * 2)
             preview_adj = np.full((preview_size, preview_size), -1, dtype=np.int64)    
             upper_left_of_center = [max_offset,max_offset]
 
-            blit(preview_adj, patterns[adj_rel[1]], upper_left_of_center, check=True)
-            blit(preview_adj, patterns[adj_rel[2]],
+            pattern_a = patterns[adj_rel[1]]
+            pattern_b = patterns[adj_rel[2]]
+            validate_adjacency(pattern_a, pattern_b, preview_size, upper_left_of_center, adj_rel)
+            if render_b_first:
+              blit(preview_adj, pattern_b,
                  (upper_left_of_center[1] + adj_rel[0][1], 
                   upper_left_of_center[0] + adj_rel[0][0]), check=True)
+              blit(preview_adj, pattern_a, upper_left_of_center, check=True)
+            else:
+              blit(preview_adj, pattern_a, upper_left_of_center, check=True)
+              blit(preview_adj, pattern_b,
+                   (upper_left_of_center[1] + adj_rel[0][1], 
+                    upper_left_of_center[0] + adj_rel[0][0]), check=True)
 
             ptr = tile_grid_to_image(preview_adj, tile_catalog, tile_size, visualize=True).astype(np.uint8)
             
-            subp = plt.subplot(math.ceil(len(adjacency_relations_list) / 4),4, i+1)
+            subp = plt.subplot(math.ceil(len(adjacency_relations_list[:64]) / 4),4, i+1)
             spi = subp.imshow(ptr)
             spi.axes.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
             plt.title(f'{i}:\n({adj_rel[1]} +\n{adj_rel[2]})\n by {adj_rel[0]}', fontsize=10)
