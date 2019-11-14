@@ -25,8 +25,8 @@ for xnode in xdoc.getroot():
 
         symmetry = int(xnode.get('symmetry', 8))
         ground = int(xnode.get('ground',0))
-        periodic_input = string2bool(xnode.get('periodicInput', True)) # Does the input wrap?
-        periodic_output = string2bool(xnode.get('periodicOutput', False)) # Do we want the output to wrap?
+        periodic_input = string2bool(xnode.get('periodic', False)) # Does the input wrap?
+        periodic_output = string2bool(xnode.get('periodic', False)) # Do we want the output to wrap?
         generated_size = (int(xnode.get('width', 48)),int(xnode.get('height', 48)))
         screenshots = int(xnode.get('screenshots', 3)) # Number of times to run the algorithm, will produce this many distinct outputs
         iteration_limit = int(xnode.get('iteration_limit', 0)) # After this many iterations, time out. 0 = never time out.

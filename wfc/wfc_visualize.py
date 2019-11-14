@@ -193,7 +193,6 @@ def figure_adjacencies(adjacency_relations_list, adjacency_directions, tile_cata
         max_offset = max([abs(x) for x in list(itertools.chain.from_iterable(adjacency_directions_list))])
 
         for i,adj_rel in enumerate(adjacency_relations_list[:64]):
-            print(i)
             preview_size = (pattern_width + max_offset * 2)
             preview_adj = np.full((preview_size, preview_size), -1, dtype=np.int64)    
             upper_left_of_center = [max_offset,max_offset]
