@@ -1,0 +1,12 @@
+<samples>
+	<overlapping name="Platformer" N="2" symmetry="2" ground="-1" periodic="True"/>
+	<overlapping name="Platformer" N="3" symmetry="2" ground="-1" periodic="True"/>
+	<overlapping name="Skyline" N="3" symmetry="2" ground="-1" periodic="True"/>
+	<overlapping name="Flowers" N="3" symmetry="2" ground="-4" periodic="True"/>
+	<overlapping name="Skyline 2" N="3" symmetry="2" periodic="True" ground="-1"/>
+	<overlapping name="Platformer" N="2" symmetry="2" ground="-1" periodic="False"/>
+	<overlapping name="Platformer" N="3" symmetry="2" ground="-1" periodic="False"/>
+	<overlapping name="Skyline" N="3" symmetry="2" ground="-1" periodic="False"/>
+	<overlapping name="Flowers" N="3" symmetry="2" ground="-4" periodic="False"/>
+	<overlapping name="Skyline 2" N="3" symmetry="2" periodic="False" ground="-1"/>        
+</samples>
