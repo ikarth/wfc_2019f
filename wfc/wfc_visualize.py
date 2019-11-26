@@ -116,28 +116,35 @@ def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalo
             solution_as_ids = np.vectorize(lambda x : decode_patterns[x])(np.argmax(wave,0))
             solution_tile_grid = pattern_grid_to_tiles(solution_as_ids, pattern_catalog)
             #figure_solver_data(f"visualization/{filename}_tiles_assigned_{choice_count}.png", "tiles assigned", solution_tile_grid, 0, pattern_total_count, "plasma")
-            img = tile_grid_to_image(solution_tile_grid, tile_catalog, tile_size)
-            print(wave)
-            image_wave = np.zeros([wave.shape[0]] + list(img.shape))
-            summed_image = np.zeros(img.shape)
-            print(image_wave.shape)
-            for i in range(wave.shape[0]):
-                local_solution_as_ids = np.full(wave.shape[1:], decode_patterns[i])
-                local_solution_tile_grid = pattern_grid_to_tiles(local_solution_as_ids, pattern_catalog)
-                tile_img = tile_grid_to_image(local_solution_tile_grid, tile_catalog, tile_size)
-                image_wave[i] = tile_img * np.array([wave[i],wave[i],wave[i]])
+            img = tile_grid_to_image(solution_tile_grid.T, tile_catalog, tile_size)
+            # print(wave)
+            # image_wave = np.zeros([wave.shape[0]] + list(img.shape))
+            # pattern_id_wave = np.full(wave.shape, np.nan, dtype=np.int64)
+            # print(pattern_id_wave.shape)
+            # tile_wave = np.zeros(wave.shape, dtype=np.int64)
+            # summed_image = np.zeros(img.shape)
+            # for i in range(wave.shape[0]):
+            #     local_solution_as_ids = np.full(wave.shape[1:], decode_patterns[i])
+            #     print(local_solution_as_ids.shape)
+            #     print(local_solution_as_ids[wave[i]].shape)
+            #     print(local_solution_as_ids[wave[i]])
+            #     pattern_id_wave[i] = local_solution_as_ids[wave[i]]
                 
-            print(image_wave)    
-            assert False
+            # #local_solution_tile_grid = pattern_grid_to_tiles(local_solution_as_ids, pattern_catalog)
+                
+            # print(pattern_id_wave)    
+            # #print(tile_wave)
+            # #print(image_wave)    
+            # assert False
               
             #figure_solver_image(f"visualization/{filename}_solution_partial_{choice_count}.png", "solved_tiles", img.astype(np.uint8))
             #imageio.imwrite(f"visualization/{filename}_solution_partial_img_{choice_count}.png", img.astype(np.uint8))
             fig_list = [
-              {"title": "order of resolution", "data": resolution_order, "vmin": 0, "vmax": max_choices, "cmap": "gist_ncar", "datatype":"figure"},
-              {"title": "chosen pattern", "data": pattern_solution, "vmin": 0, "vmax": pattern_total_count, "cmap": "viridis", "datatype":"figure"},
-              {"title": "resolution method", "data": resolution_method, "vmin": 0, "vmax": 2, "cmap": "inferno", "datatype":"figure"},   
-              {"title": "patterns remaining", "data": pattern_left_count, "vmin": 0, "vmax": pattern_total_count, "cmap": "magma", "datatype":"figure"},
-              {"title": "tiles assigned", "data": solution_tile_grid, "vmin": 0, "vmax": pattern_total_count, "cmap": "prism", "datatype":"figure"},
+              {"title": "order of resolution", "data": resolution_order.T, "vmin": 0, "vmax": max_choices, "cmap": "gist_ncar", "datatype":"figure"},
+              {"title": "chosen pattern", "data": pattern_solution.T, "vmin": 0, "vmax": pattern_total_count, "cmap": "viridis", "datatype":"figure"},
+              {"title": "resolution method", "data": resolution_method.T, "vmin": 0, "vmax": 2, "cmap": "inferno", "datatype":"figure"},   
+              {"title": "patterns remaining", "data": pattern_left_count.T, "vmin": 0, "vmax": pattern_total_count, "cmap": "magma", "datatype":"figure"},
+              {"title": "tiles assigned", "data": solution_tile_grid.T, "vmin": None, "vmax": None, "cmap": "prism", "datatype":"figure"},
               {"title": "solved tiles", "data": img.astype(np.uint8), "datatype":"image"}
              ]
             figure_unified("Solver Readout", f"visualization/{filename}_readout_{choice_count:03}.png", fig_list)
@@ -149,9 +156,9 @@ def figure_unified(figure_name_overall, filename, data):
 
     for idx, data_obj in enumerate(data):
       if "image" == data[idx]["datatype"]:
-        axs[idx].imshow(data[idx]["data"].rot90(), interpolation='nearest')
+        axs[idx].imshow(data[idx]["data"], interpolation='nearest')
       else:
-        axs[idx].matshow(data[idx]["data"].rot90(), vmin=data[idx]["vmin"], vmax=data[idx]["vmax"], cmap=data[idx]["cmap"])
+        axs[idx].matshow(data[idx]["data"], vmin=data[idx]["vmin"], vmax=data[idx]["vmax"], cmap=data[idx]["cmap"])
       axs[idx].get_xaxis().set_visible(False)
       axs[idx].get_yaxis().set_visible(False)
       axs[idx].label_outer()
@@ -336,7 +343,7 @@ def figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, patte
 
 
 def render_tiles_to_output(tile_grid, tile_catalog, tile_size, output_filename):
-  img = tile_grid_to_image(tile_grid, tile_catalog, tile_size)
+  img = tile_grid_to_image(tile_grid.T, tile_catalog, tile_size)
   imageio.imwrite(output_filename, img.astype(np.uint8))
 
 
