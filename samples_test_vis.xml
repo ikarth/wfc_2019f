@@ -1,0 +1,5 @@
+<samples>
+  	<overlapping name="Red Maze" N="2" width="6" height="3"/>
+ 	<overlapping name="Dungeon" N="3" periodic="True" width="18" height="7"/>
+	<overlapping name="Flowers" N="3" symmetry="2" ground="-4" periodic="False" width="8" height="12"/>
+</samples>

@@ -10,7 +10,7 @@ def string2bool(strn):
 
 
 
-xdoc = ET.ElementTree(file="samples_test_ground.xml")
+xdoc = ET.ElementTree(file="samples_test_vis.xml")
 default_allowed_attempts = 10
 default_backtracking = False
 for xnode in xdoc.getroot():
