@@ -1,26 +1,27 @@
 "Visualize the patterns into tiles and so on."
 
-from .wfc_patterns import pattern_grid_to_tiles
-import matplotlib.pyplot as plt
-import numpy as np
-import matplotlib
-import imageio
 import math
 import pathlib
 import itertools
+import imageio
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+from .wfc_patterns import pattern_grid_to_tiles
 
 ## Helper functions
 RGB_CHANNELS = 3
 def rgb_to_int(rgb_in):
-  """"Takes RGB triple, returns integer representation."""
-  return struct.unpack('I', 
+    """"Takes RGB triple, returns integer representation."""
+    return struct.unpack('I', 
                        struct.pack('<' + 'B' * 4, 
                                    *(rgb_in + [0] * (4 - len(rgb_in)))))[0]
 def int_to_rgb(val):
-  return [x for x in val.to_bytes(RGB_CHANNELS, 'little')]
+    """Convert hashed int to RGB values"""
+    return [x for x in val.to_bytes(RGB_CHANNELS, 'little')]
 
-
-
+WFC_PARTIAL_BLANK = np.nan
+  
 def tile_to_image(tile, tile_catalog, tile_size, visualize=False):
     """
     Takes a single tile and returns the pixel image representation.
@@ -39,20 +40,22 @@ def tile_to_image(tile, tile_catalog, tile_size, visualize=False):
                 if (visualize) and -2 == tile:
                     pixel = [0, 255, 255]
                 else:            
-                    pixel = tile_catalog[tile][u,v]
-            new_img[u,v] = pixel
+                    pixel = tile_catalog[tile][u, v]
+            new_img[u, v] = pixel
     return new_img
 
 def argmax_unique(arr, axis):
-  arrm = np.argmax(arr, axis)
-  arrs = np.sum(arr, axis)
-  uni_argmax = (arrs == 1)
-  nonunique_mask = np.ma.make_mask((arrs == 1) == False)
-  uni_argmax = np.ma.masked_array(arrm, mask=nonunique_mask, fill_value=-1)
-  return uni_argmax, nonunique_mask
+    """Return a mask so that we can exclude the nonunique maximums, i.e. the nodes that aren't completely resolved"""
+    arrm = np.argmax(arr, axis)
+    arrs = np.sum(arr, axis)
+    uni_argmax = (arrs == 1)
+    nonunique_mask = np.ma.make_mask((arrs == 1) is False)
+    uni_argmax = np.ma.masked_array(arrm, mask=nonunique_mask, fill_value=-1)
+    return uni_argmax, nonunique_mask
 
 
 def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalog=None, tile_catalog=None, tile_size=[1, 1]):
+    """Construct visualizers for displaying the intermediate solver status"""
     print(wave.shape)
     pattern_total_count = wave.shape[0]
     resolution_order = np.zeros(wave.shape[1:]) # pattern_wave = when was this resolved?

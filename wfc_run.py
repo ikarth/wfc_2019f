@@ -9,8 +9,7 @@ def string2bool(strn):
     return strn.lower() in ["true"]
 
 
-
-xdoc = ET.ElementTree(file="samples_test_vis.xml")
+xdoc = ET.ElementTree(file="samples_reference.xml")
 default_allowed_attempts = 10
 default_backtracking = False
 for xnode in xdoc.getroot():
@@ -24,10 +23,10 @@ for xnode in xdoc.getroot():
         # 2x2 is the minimum, larger scales get slower fast.
 
         symmetry = int(xnode.get('symmetry', 8))
-        ground = int(xnode.get('ground',0))
+        ground = int(xnode.get('ground', 0))
         periodic_input = string2bool(xnode.get('periodic', False)) # Does the input wrap?
         periodic_output = string2bool(xnode.get('periodic', False)) # Do we want the output to wrap?
-        generated_size = (int(xnode.get('width', 48)),int(xnode.get('height', 48)))
+        generated_size = (int(xnode.get('width', 48)), int(xnode.get('height', 48)))
         screenshots = int(xnode.get('screenshots', 3)) # Number of times to run the algorithm, will produce this many distinct outputs
         iteration_limit = int(xnode.get('iteration_limit', 0)) # After this many iterations, time out. 0 = never time out.
         allowed_attempts = int(xnode.get('allowed_attempts', default_allowed_attempts)) # Give up after this many contradictions
