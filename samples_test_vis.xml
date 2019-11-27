@@ -1,4 +1,5 @@
 <samples>
+  	<overlapping name="f_test" N="2" width="4" height="4" screenshots="3" symmetry="1"/>
   	<overlapping name="f_test" N="2" width="16" height="16" screenshots="3" symmetry="1"/>
   	<overlapping name="f_test" N="2" width="32" height="32" screenshots="3" symmetry="1"/>
   	<overlapping name="tilesize_test" N="2" width="10" height="8" tile_size="2" screenshots="1"/>

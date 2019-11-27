@@ -1,7 +1,4 @@
 <samples>
-  	<overlapping name="Red Maze" N="2" width="16" height="11"/>
-
-  	<overlapping name="Dungeon" N="3" periodic="True" width="28" height="31"/>
 	<overlapping name="Flowers" N="3" symmetry="2" ground="-4" periodic="False" width="8" height="12"/>
 	<overlapping name="Flowers" N="3" symmetry="2" ground="-4" periodic="False" width="16" height="12"/>
 	<overlapping name="Platformer" N="2" symmetry="2" ground="-1" periodic="False" width="12" height="8"/>
@@ -9,8 +6,11 @@
 	<overlapping name="Skyline" N="3" symmetry="2" ground="-1" periodic="False" width="12" height="8"/>
 	<overlapping name="Flowers" N="3" symmetry="2" ground="-4" periodic="False" width="12" height="8"/>
 	<overlapping name="Skyline 2" N="3" symmetry="2" periodic="False" ground="-1" width="12" height="8"/>        
+  	<overlapping name="Red Maze" N="2" width="16" height="11"/>
 
-  <overlapping name="Platformer" N="2" symmetry="2" ground="-1" periodic="True"/>
+  	<overlapping name="Dungeon" N="3" periodic="True" width="28" height="31"/>
+
+        <overlapping name="Platformer" N="2" symmetry="2" ground="-1" periodic="True"/>
 	<overlapping name="Platformer" N="3" symmetry="2" ground="-1" periodic="True"/>
 	<overlapping name="Skyline" N="3" symmetry="2" ground="-1" periodic="True"/>
 	<overlapping name="Flowers" N="3" symmetry="2" ground="-4" periodic="True"/>

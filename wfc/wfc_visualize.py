@@ -70,11 +70,23 @@ def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalo
     print(wave.shape)
     pattern_total_count = wave.shape[0]
     resolution_order = np.zeros(wave.shape[1:]) # pattern_wave = when was this resolved?
-    pattern_solution = np.full(wave.shape[1:], np.nan) # what is the resolved result?
+    pattern_solution = np.full(wave.shape[1:], -1) # what is the resolved result?
     resolution_method = np.zeros(wave.shape[1:]) # did we set this via observation or propagation?
     choice_count = 0
     vis_count = 0
-    max_choices = 140
+    max_choices = math.floor((wave.shape[1] * wave.shape[2]) / 3)
+
+    #pattern_id_wave = np.zeros(wave.shape, dtype=np.int64)
+    #for i in range(wave.shape[0]):
+    #  local_solution_as_ids = np.full(wave.shape[1:], decode_patterns[i])
+    #  local_solution_tile_grid = pattern_grid_to_tiles(local_solution_as_ids, pattern_catalog)
+    #  pattern_id_wave[i] = local_solution_tile_grid
+
+    tile_wave = np.zeros(wave.shape, dtype=np.int64)
+    for i in range(wave.shape[0]):
+      local_solution_as_ids = np.full(wave.shape[1:], decode_patterns[i])
+      local_solution_tile_grid = pattern_grid_to_tiles(local_solution_as_ids, pattern_catalog)
+      tile_wave[i] = local_solution_tile_grid
     
     def choice_vis(pattern, i, j, wave=None):
         #print(f"choice_vis: {pattern} {i},{j}")
@@ -117,6 +129,29 @@ def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalo
             solution_tile_grid = pattern_grid_to_tiles(solution_as_ids, pattern_catalog)
             #figure_solver_data(f"visualization/{filename}_tiles_assigned_{choice_count}.png", "tiles assigned", solution_tile_grid, 0, pattern_total_count, "plasma")
             img = tile_grid_to_image(solution_tile_grid.T, tile_catalog, tile_size)
+
+            masked_tile_wave = np.ma.MaskedArray(data=tile_wave, mask=(wave == False), dtype=np.int64)
+            masked_img = tile_grid_to_average(np.transpose(masked_tile_wave, (0,2,1)), tile_catalog, tile_size)
+            
+                
+                
+                #image_wave[i] = tile_grid_to_image(local_solution_tile_grid.T, tile_catalog, tile_size)
+                #print(image_wave[i])
+                #print(wave[i])
+                #print(np.repeat(wave[i],3))
+                #print(np.reshape(np.repeat(wave[i],3), (wave[i].shape[0], wave[i].shape[1], 3)))
+                #image_wave_mask[i] = np.reshape(np.repeat(wave[i],3), (wave[i].shape[0], wave[i].shape[1], 3))
+                #print(image_wave_mask[i])
+                #image_wave[i] = np.ma.MaskedArray(data=image_wave[i], mask=image_wave_mask[i], fill_value=None)
+            #print(image_wave)
+            #assert False  
+              
+
+            #pattern_id_wave = np.ma.masked_where(wave == False, pattern_id_wave)
+
+            #pattern_id_wave[wave == False] = -1
+            #print(pattern_id_wave)
+            
             # print(wave)
             # image_wave = np.zeros([wave.shape[0]] + list(img.shape))
             # pattern_id_wave = np.full(wave.shape, np.nan, dtype=np.int64)
@@ -140,14 +175,14 @@ def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalo
             #figure_solver_image(f"visualization/{filename}_solution_partial_{choice_count}.png", "solved_tiles", img.astype(np.uint8))
             #imageio.imwrite(f"visualization/{filename}_solution_partial_img_{choice_count}.png", img.astype(np.uint8))
             fig_list = [
-              {"title": "order of resolution", "data": resolution_order.T, "vmin": 0, "vmax": max_choices, "cmap": "gist_ncar", "datatype":"figure"},
+              {"title": "order of resolution", "data": resolution_order.T, "vmin": 0, "vmax": max_choices, "cmap": "hsv", "datatype":"figure"},
               {"title": "chosen pattern", "data": pattern_solution.T, "vmin": 0, "vmax": pattern_total_count, "cmap": "viridis", "datatype":"figure"},
-              {"title": "resolution method", "data": resolution_method.T, "vmin": 0, "vmax": 2, "cmap": "inferno", "datatype":"figure"},   
-              {"title": "patterns remaining", "data": pattern_left_count.T, "vmin": 0, "vmax": pattern_total_count, "cmap": "magma", "datatype":"figure"},
+              {"title": "resolution method", "data": resolution_method.T, "vmin": 0, "vmax": 2, "cmap": "magma", "datatype":"figure"},   
+              {"title": "patterns remaining", "data": pattern_left_count.T, "vmin": 0, "vmax": pattern_total_count, "cmap": "viridis", "datatype":"figure"},
               {"title": "tiles assigned", "data": solution_tile_grid.T, "vmin": None, "vmax": None, "cmap": "prism", "datatype":"figure"},
-              {"title": "solved tiles", "data": img.astype(np.uint8), "datatype":"image"}
+              {"title": "solved tiles", "data": masked_img.astype(np.uint8), "datatype":"image"}
              ]
-            figure_unified("Solver Readout", f"visualization/{filename}_readout_{choice_count:03}.png", fig_list)
+            figure_unified("Solver Readout", f"visualization/{filename}_readout_{choice_count:03}_{vis_count:03}.png", fig_list)
       
     return choice_vis, wave_vis
 
@@ -163,7 +198,7 @@ def figure_unified(figure_name_overall, filename, data):
       axs[idx].get_yaxis().set_visible(False)
       axs[idx].label_outer()
 
-    plt.savefig(filename, bbox_inches="tight", pad_inches=0)
+    plt.savefig(filename, bbox_inches="tight", pad_inches=0, dpi=600)
     plt.close(fig=matfig)
     plt.close('all')
     
@@ -248,6 +283,25 @@ def figure_wave_patterns(filename, pattern_left_count, max_count):
   #3. to continue to bolster our research profile
   # AAU
   # 
+
+def tile_grid_to_average(tile_grid, tile_catalog, tile_size, color_channels=3):
+  """
+  Takes a masked array of tile grid stacks and transforms it into an image, taking
+  the average colors of the tiles in tile_catalog.
+  """
+  new_img = np.zeros((tile_grid.shape[1] * tile_size[0], tile_grid.shape[2] * tile_size[1], color_channels), dtype=np.int64)
+  for i in range(tile_grid.shape[1]):
+    for j in range(tile_grid.shape[2]):
+      tile_stack = tile_grid[:,i,j]
+      for u in range(tile_size[0]):
+        for v in range(tile_size[1]):
+          pixel = [200, 0, 200]
+          pixel_list = np.array([tile_catalog[t][u,v] for t in tile_stack[tile_stack.mask == False]], dtype=np.int64)
+          pixel = (np.mean(pixel_list, axis=0))
+          # TODO: will need to change if using an image with more than 3 channels
+          new_img[(i * tile_size[0]) + u, (j * tile_size[1]) + v] = np.resize(pixel, new_img[(i * tile_size[0]) + u, (j * tile_size[1]) + v].shape)
+  return new_img
+    
   
 def tile_grid_to_image(tile_grid, tile_catalog, tile_size, visualize=False, partial=False, color_channels=3):
     """
