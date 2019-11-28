@@ -59,9 +59,7 @@ def make_solver_loggers(filename, stats={}):
     counter_wave = 0
     counter_backtracks = 0
     counter_propagate = 0
-    print(stats)
-    input("make_solver_loggers")
-  
+    
     def choice_count(pattern, i, j, wave=None):
         nonlocal counter_choices
         counter_choices += 1
