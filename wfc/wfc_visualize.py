@@ -81,7 +81,11 @@ def make_solver_loggers(filename, stats={}):
         stats.update({"choices": counter_choices, "wave": counter_wave, "backtracks": counter_backtracks, "propagations": counter_propagate})
         return stats
 
-    return choice_count, wave_count, backtrack_count, propagate_count, final_count
+    def report_count():
+        stats.update({"choices": counter_choices, "wave": counter_wave, "backtracks": counter_backtracks, "propagations": counter_propagate})
+        return stats
+
+    return choice_count, wave_count, backtrack_count, propagate_count, final_count, report_count
   
 
 def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalog=None, tile_catalog=None, tile_size=[1, 1]):
@@ -171,7 +175,7 @@ def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalo
         vis_count += 1
         pattern_solution = np.full(wave.shape[1:], -1)
       
-    return choice_vis, wave_vis, backtrack_vis, None, wave_vis
+    return choice_vis, wave_vis, backtrack_vis, None, wave_vis, None
 
 def figure_unified(figure_name_overall, filename, data):
     matfig, axs = plt.subplots(1, len(data), sharey='row', gridspec_kw={'hspace':0, 'wspace':0})
