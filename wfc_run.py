@@ -15,6 +15,9 @@ def run_default(run_experiment=False):
     xdoc = ET.ElementTree(file="samples_reference.xml")
     default_allowed_attempts = 10
     default_backtracking = False
+    log_stats_to_output = wfc_control.make_log_stats()
+
+    
     for xnode in xdoc.getroot():
         name = xnode.get('name', "NAME")
         if "overlapping" == xnode.tag:
@@ -70,6 +73,7 @@ def run_default(run_experiment=False):
                                                        backtracking=experiment["backtracking"],
                                                        global_constraint=experiment["global"],
                                                        log_filename=log_filename,
+                                                       log_stats_to_output=log_stats_to_output,
                                                        visualize=False,
                                                        logging=True
                     )
