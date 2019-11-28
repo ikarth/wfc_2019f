@@ -54,15 +54,49 @@ def argmax_unique(arr, axis):
     return uni_argmax, nonunique_mask
 
 
+def make_solver_loggers(filename, stats={}):
+    counter_choices = 0
+    counter_wave = 0
+    counter_backtracks = 0
+    counter_propagate = 0
+    print(stats)
+    input("make_solver_loggers")
+  
+    def choice_count(pattern, i, j, wave=None):
+        nonlocal counter_choices
+        counter_choices += 1
+
+    def wave_count(wave):
+        nonlocal counter_wave
+        counter_wave += 1
+
+    def backtrack_count():
+        nonlocal counter_backtracks
+        counter_backtracks += 1
+      
+    def propagate_count(wave):
+        nonlocal counter_propagate
+        counter_propagate += 1
+      
+    def final_count(wave):
+        print(f"{filename}: choices: {counter_choices}, wave:{counter_wave}, backtracks: {counter_backtracks}, propagations: {counter_propagate}")
+        stats.update({"choices": counter_choices, "wave": counter_wave, "backtracks": counter_backtracks, "propagations": counter_propagate})
+        return stats
+
+    return choice_count, wave_count, backtrack_count, propagate_count, final_count
+  
+
 def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalog=None, tile_catalog=None, tile_size=[1, 1]):
     """Construct visualizers for displaying the intermediate solver status"""
     print(wave.shape)
     pattern_total_count = wave.shape[0]
-    resolution_order = np.zeros(wave.shape[1:]) # pattern_wave = when was this resolved?
+    resolution_order = np.full(wave.shape[1:], np.nan) # pattern_wave = when was this resolved?
+    backtracking_order = np.full(wave.shape[1:], np.nan) # on which iternation was this resolved?
     pattern_solution = np.full(wave.shape[1:], -1) # what is the resolved result?
     resolution_method = np.zeros(wave.shape[1:]) # did we set this via observation or propagation?
     choice_count = 0
     vis_count = 0
+    backtracking_count = 0
     max_choices = math.floor((wave.shape[1] * wave.shape[2]) / 3)
     output_individual_visualizations = False
 
@@ -104,6 +138,7 @@ def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalo
         resolved_by_propagation = np.ma.mask_or(nonunique_mask, resolution_method != 0) == 0
         resolution_method[resolved_by_propagation] = 1
         resolution_order[resolved_by_propagation] = choice_count
+        backtracking_order[resolved_by_propagation] = backtracking_count
         if output_individual_visualizations:
             figure_wave_patterns(filename, pattern_left_count, pattern_total_count)
             figure_solver_data(f"visualization/{filename}_wave_patterns_{choice_count}.png", "patterns remaining", pattern_left_count, 0, pattern_total_count, "magma")
@@ -121,7 +156,7 @@ def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalo
                 figure_solver_image(f"visualization/{filename}_solution_partial_{choice_count}.png", "solved_tiles", img.astype(np.uint8))
                 imageio.imwrite(f"visualization/{filename}_solution_partial_img_{choice_count}.png", img.astype(np.uint8))
             fig_list = [
-                {"title": "order of resolution", "data": resolution_order.T, "vmin": 0, "vmax": max_choices, "cmap": "hsv", "datatype":"figure"},
+                {"title": "order of resolution", "data": resolution_order.T, "vmin": 0, "vmax": max_choices / 4, "cmap": "hsv", "datatype":"figure"},
                 {"title": "chosen pattern", "data": pattern_solution.T, "vmin": 0, "vmax": pattern_total_count, "cmap": "viridis", "datatype":"figure"},
                 {"title": "resolution method", "data": resolution_method.T, "vmin": 0, "vmax": 2, "cmap": "magma", "datatype":"figure"},   
                 {"title": "patterns remaining", "data": pattern_left_count.T, "vmin": 0, "vmax": pattern_total_count, "cmap": "viridis", "datatype":"figure"},
@@ -129,8 +164,16 @@ def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalo
                 {"title": "solved tiles", "data": masked_img.astype(np.uint8), "datatype":"image"}
              ] 
             figure_unified("Solver Readout", f"visualization/{filename}_readout_{choice_count:03}_{vis_count:03}.png", fig_list)
+
+    def backtrack_vis():
+        nonlocal vis_count
+        nonlocal pattern_solution
+        nonlocal backtracking_count
+        backtracking_count += 1
+        vis_count += 1
+        pattern_solution = np.full(wave.shape[1:], -1)
       
-    return choice_vis, wave_vis
+    return choice_vis, wave_vis, backtrack_vis, None, wave_vis
 
 def figure_unified(figure_name_overall, filename, data):
     matfig, axs = plt.subplots(1, len(data), sharey='row', gridspec_kw={'hspace':0, 'wspace':0})
