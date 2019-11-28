@@ -82,4 +82,4 @@ def run_default(run_experiment=False):
                     else:
                         print(solution)
                 
-run_default()
+run_default(True)
