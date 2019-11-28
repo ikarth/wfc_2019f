@@ -35,12 +35,24 @@ def run_default(run_experiment=False):
             allowed_attempts = int(xnode.get('allowed_attempts', default_allowed_attempts)) # Give up after this many contradictions
             backtracking = string2bool(xnode.get('backtracking', default_backtracking))
 
-            run_instructions = [{"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": False}]
+            run_instructions = [{"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": None}]
             if run_experiment:
-                run_instructions = [{"loc": "lexical", "choice": "weighted", "backtracking":backtracking, "global": False},
-                                    {"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": False},
-                                    {"loc": "lexical", "choice": "lexical",  "backtracking":backtracking, "global": False},
-                                    {"loc": "entropy", "choice": "lexical",  "backtracking":backtracking, "global": False}]
+                run_instructions = [{"loc": "lexical", "choice": "weighted", "backtracking":backtracking, "global": None},
+                                    {"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": None},
+                                    {"loc": "lexical", "choice": "lexical",  "backtracking":backtracking, "global": None},
+                                    {"loc": "entropy", "choice": "lexical",  "backtracking":backtracking, "global": None},
+                                    {"loc": "lexical", "choice": "weighted", "backtracking":True, "global": None},
+                                    {"loc": "entropy", "choice": "weighted", "backtracking":True, "global": None},
+                                    {"loc": "lexical", "choice": "lexical",  "backtracking":True, "global": None},
+                                    {"loc": "entropy", "choice": "lexical",  "backtracking":True, "global": None},
+                                    {"loc": "lexical", "choice": "weighted", "backtracking":True, "global": "allpatterns"},
+                                    {"loc": "entropy", "choice": "weighted", "backtracking":True, "global": "allpatterns"},
+                                    {"loc": "lexical", "choice": "lexical",  "backtracking":True, "global": "allpatterns"},
+                                    {"loc": "entropy", "choice": "lexical",  "backtracking":True, "global": "allpatterns"},
+                                    {"loc": "lexical", "choice": "weighted", "backtracking":False, "global": "allpatterns"},
+                                    {"loc": "entropy", "choice": "weighted", "backtracking":False, "global": "allpatterns"},
+                                    {"loc": "lexical", "choice": "lexical",  "backtracking":False, "global": "allpatterns"},
+                                    {"loc": "entropy", "choice": "lexical",  "backtracking":False, "global": "allpatterns"}]
 
             for experiment in run_instructions:
                 for x in range(screenshots):
