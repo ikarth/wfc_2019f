@@ -42,20 +42,16 @@ def run_default(run_experiment=False):
             if run_experiment:
                 run_instructions = [{"loc": "lexical", "choice": "weighted", "backtracking":backtracking, "global": None},
                                     {"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": None},
+                                    {"loc": "random",  "choice": "weighted", "backtracking":False, "global": None},
                                     {"loc": "lexical", "choice": "lexical",  "backtracking":backtracking, "global": None},
                                     {"loc": "entropy", "choice": "lexical",  "backtracking":backtracking, "global": None},
+                                    {"loc": "random",  "choice": "lexical",  "backtracking":False, "global": None},
                                     {"loc": "lexical", "choice": "weighted", "backtracking":True, "global": None},
                                     {"loc": "entropy", "choice": "weighted", "backtracking":True, "global": None},
-                                    {"loc": "lexical", "choice": "lexical",  "backtracking":True, "global": None},
-                                    {"loc": "entropy", "choice": "lexical",  "backtracking":True, "global": None},
                                     {"loc": "lexical", "choice": "weighted", "backtracking":True, "global": "allpatterns"},
                                     {"loc": "entropy", "choice": "weighted", "backtracking":True, "global": "allpatterns"},
-                                    {"loc": "lexical", "choice": "lexical",  "backtracking":True, "global": "allpatterns"},
-                                    {"loc": "entropy", "choice": "lexical",  "backtracking":True, "global": "allpatterns"},
                                     {"loc": "lexical", "choice": "weighted", "backtracking":False, "global": "allpatterns"},
-                                    {"loc": "entropy", "choice": "weighted", "backtracking":False, "global": "allpatterns"},
-                                    {"loc": "lexical", "choice": "lexical",  "backtracking":False, "global": "allpatterns"},
-                                    {"loc": "entropy", "choice": "lexical",  "backtracking":False, "global": "allpatterns"}]
+                                    {"loc": "entropy", "choice": "weighted", "backtracking":False, "global": "allpatterns"}]
 
             for experiment in run_instructions:
                 for x in range(screenshots):
