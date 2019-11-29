@@ -33,7 +33,7 @@ def run_default(run_experiment=False):
             periodic_input = string2bool(xnode.get('periodic', False)) # Does the input wrap?
             periodic_output = string2bool(xnode.get('periodic', False)) # Do we want the output to wrap?
             generated_size = (int(xnode.get('width', 48)), int(xnode.get('height', 48)))
-            screenshots = int(xnode.get('screenshots', 3)) # Number of times to run the algorithm, will produce this many distinct outputs
+            screenshots = int(xnode.get('screenshots', 1)) # Number of times to run the algorithm, will produce this many distinct outputs
             iteration_limit = int(xnode.get('iteration_limit', 0)) # After this many iterations, time out. 0 = never time out.
             allowed_attempts = int(xnode.get('allowed_attempts', default_allowed_attempts)) # Give up after this many contradictions
             backtracking = string2bool(xnode.get('backtracking', default_backtracking))
@@ -42,20 +42,16 @@ def run_default(run_experiment=False):
             if run_experiment:
                 run_instructions = [{"loc": "lexical", "choice": "weighted", "backtracking":backtracking, "global": None},
                                     {"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": None},
+                                    {"loc": "random",  "choice": "weighted", "backtracking":False, "global": None},
                                     {"loc": "lexical", "choice": "lexical",  "backtracking":backtracking, "global": None},
                                     {"loc": "entropy", "choice": "lexical",  "backtracking":backtracking, "global": None},
+                                    {"loc": "random",  "choice": "lexical",  "backtracking":False, "global": None},
                                     {"loc": "lexical", "choice": "weighted", "backtracking":True, "global": None},
                                     {"loc": "entropy", "choice": "weighted", "backtracking":True, "global": None},
-                                    {"loc": "lexical", "choice": "lexical",  "backtracking":True, "global": None},
-                                    {"loc": "entropy", "choice": "lexical",  "backtracking":True, "global": None},
                                     {"loc": "lexical", "choice": "weighted", "backtracking":True, "global": "allpatterns"},
                                     {"loc": "entropy", "choice": "weighted", "backtracking":True, "global": "allpatterns"},
-                                    {"loc": "lexical", "choice": "lexical",  "backtracking":True, "global": "allpatterns"},
-                                    {"loc": "entropy", "choice": "lexical",  "backtracking":True, "global": "allpatterns"},
                                     {"loc": "lexical", "choice": "weighted", "backtracking":False, "global": "allpatterns"},
-                                    {"loc": "entropy", "choice": "weighted", "backtracking":False, "global": "allpatterns"},
-                                    {"loc": "lexical", "choice": "lexical",  "backtracking":False, "global": "allpatterns"},
-                                    {"loc": "entropy", "choice": "lexical",  "backtracking":False, "global": "allpatterns"}]
+                                    {"loc": "entropy", "choice": "weighted", "backtracking":False, "global": "allpatterns"}]
 
             for experiment in run_instructions:
                 for x in range(screenshots):
@@ -74,7 +70,7 @@ def run_default(run_experiment=False):
                                                        global_constraint=experiment["global"],
                                                        log_filename=log_filename,
                                                        log_stats_to_output=log_stats_to_output,
-                                                       visualize=False,
+                                                       visualize=True,
                                                        logging=True
                     )
                     if solution is None:
