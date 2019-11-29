@@ -12,7 +12,7 @@ def string2bool(strn):
 
 def run_default(run_experiment=False):
     log_filename = f"log_{time.time()}"
-    xdoc = ET.ElementTree(file="samples_reference.xml")
+    xdoc = ET.ElementTree(file="samples_reference_continue.xml")
     default_allowed_attempts = 10
     default_backtracking = False
     log_stats_to_output = wfc_control.make_log_stats()
@@ -74,7 +74,7 @@ def run_default(run_experiment=False):
                                                        global_constraint=experiment["global"],
                                                        log_filename=log_filename,
                                                        log_stats_to_output=log_stats_to_output,
-                                                       visualize=False,
+                                                       visualize=True,
                                                        logging=True
                     )
                     if solution is None:
