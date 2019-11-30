@@ -12,7 +12,7 @@ def string2bool(strn):
 
 def run_default(run_experiment=False):
     log_filename = f"log_{time.time()}"
-    xdoc = ET.ElementTree(file="samples_reference.xml")
+    xdoc = ET.ElementTree(file="samples_testhog.xml")
     default_allowed_attempts = 10
     default_backtracking = False
     log_stats_to_output = wfc_control.make_log_stats()
@@ -40,8 +40,8 @@ def run_default(run_experiment=False):
 
             run_instructions = [{"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": None}]
             if run_experiment:
-                run_instructions = [{"loc": "lexical", "choice": "weighted", "backtracking":backtracking, "global": None},
-                                    {"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": None},
+                run_instructions = [#{"loc": "lexical", "choice": "weighted", "backtracking":backtracking, "global": None},
+                                    #{"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": None},
                                     {"loc": "random",  "choice": "weighted", "backtracking":False, "global": None},
                                     #{"loc": "lexical", "choice": "random",  "backtracking":backtracking, "global": None},
                                     #{"loc": "entropy", "choice": "random",  "backtracking":backtracking, "global": None},
