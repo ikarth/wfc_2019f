@@ -43,9 +43,9 @@ def run_default(run_experiment=False):
                 run_instructions = [{"loc": "lexical", "choice": "weighted", "backtracking":backtracking, "global": None},
                                     {"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": None},
                                     {"loc": "random",  "choice": "weighted", "backtracking":False, "global": None},
-                                    {"loc": "lexical", "choice": "lexical",  "backtracking":backtracking, "global": None},
-                                    {"loc": "entropy", "choice": "lexical",  "backtracking":backtracking, "global": None},
-                                    {"loc": "random",  "choice": "lexical",  "backtracking":False, "global": None},
+                                    #{"loc": "lexical", "choice": "random",  "backtracking":backtracking, "global": None},
+                                    #{"loc": "entropy", "choice": "random",  "backtracking":backtracking, "global": None},
+                                    #{"loc": "random",  "choice": "random",  "backtracking":False, "global": None},
                                     {"loc": "lexical", "choice": "weighted", "backtracking":True, "global": None},
                                     {"loc": "entropy", "choice": "weighted", "backtracking":True, "global": None},
                                     {"loc": "lexical", "choice": "weighted", "backtracking":True, "global": "allpatterns"},
@@ -70,7 +70,7 @@ def run_default(run_experiment=False):
                                                        global_constraint=experiment["global"],
                                                        log_filename=log_filename,
                                                        log_stats_to_output=log_stats_to_output,
-                                                       visualize=True,
+                                                       visualize=False,
                                                        logging=True
                     )
                     if solution is None:
