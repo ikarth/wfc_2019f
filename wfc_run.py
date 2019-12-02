@@ -62,6 +62,7 @@ def run_default(run_experiment=False):
                                                        rotations=symmetry,
                                                        output_size=generated_size,
                                                        ground=ground,
+                                                       attempt_limit=allowed_attempts,
                                                        output_periodic=periodic_output,
                                                        input_periodic=periodic_input,
                                                        loc_heuristic=experiment["loc"],
