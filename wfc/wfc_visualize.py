@@ -94,7 +94,7 @@ def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalo
     pattern_total_count = wave.shape[0]
     resolution_order = np.full(wave.shape[1:], np.nan) # pattern_wave = when was this resolved?
     backtracking_order = np.full(wave.shape[1:], np.nan) # on which iternation was this resolved?
-    pattern_solution = np.full(wave.shape[1:], -1) # what is the resolved result?
+    pattern_solution = np.full(wave.shape[1:], np.nan) # what is the resolved result?
     resolution_method = np.zeros(wave.shape[1:]) # did we set this via observation or propagation?
     choice_count = 0
     vis_count = 0
@@ -136,8 +136,9 @@ def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalo
         nonlocal resolution_order
         vis_count += 1
         pattern_left_count = np.count_nonzero(wave > 0, axis=0)
-        assigned_patterns, nonunique_mask = argmax_unique(wave, 0)
-        resolved_by_propagation = np.ma.mask_or(nonunique_mask, resolution_method != 0) == 0
+        #assigned_patterns, nonunique_mask = argmax_unique(wave, 0)
+        resolved_by_propagation = np.ma.mask_or(pattern_left_count > 1, resolution_method != 0) != 1
+        #print(resolved_by_propagation)
         resolution_method[resolved_by_propagation] = 1
         resolution_order[resolved_by_propagation] = choice_count
         backtracking_order[resolved_by_propagation] = backtracking_count
@@ -158,6 +159,7 @@ def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalo
                 figure_solver_image(f"visualization/{filename}_solution_partial_{choice_count}.png", "solved_tiles", img.astype(np.uint8))
                 imageio.imwrite(f"visualization/{filename}_solution_partial_img_{choice_count}.png", img.astype(np.uint8))
             fig_list = [
+                #{"title": "resolved by propagation", "data": resolved_by_propagation.T, "vmin": 0, "vmax": 2, "cmap": "inferno", "datatype":"figure"},
                 {"title": "order of resolution", "data": resolution_order.T, "vmin": 0, "vmax": max_choices / 4, "cmap": "hsv", "datatype":"figure"},
                 {"title": "chosen pattern", "data": pattern_solution.T, "vmin": 0, "vmax": pattern_total_count, "cmap": "viridis", "datatype":"figure"},
                 {"title": "resolution method", "data": resolution_method.T, "vmin": 0, "vmax": 2, "cmap": "magma", "datatype":"figure"},   
