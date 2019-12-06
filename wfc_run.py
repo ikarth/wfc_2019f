@@ -12,7 +12,7 @@ def string2bool(strn):
 
 def run_default(run_experiment=False):
     log_filename = f"log_{time.time()}"
-    xdoc = ET.ElementTree(file="samples_reference.xml")
+    xdoc = ET.ElementTree(file="samples_test_vis.xml")
     default_allowed_attempts = 10
     default_backtracking = False
     log_stats_to_output = wfc_control.make_log_stats()
@@ -59,8 +59,14 @@ def run_default(run_experiment=False):
                     {"loc": "spiral",  "choice": "weighted", "backtracking":backtracking, "global": None},
                     {"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": None},
                     {"loc": "lexical", "choice": "weighted", "backtracking":backtracking, "global": None},
+                    {"loc": "simple",  "choice": "weighted", "backtracking":backtracking, "global": None},                    
                     {"loc": "random",  "choice": "weighted", "backtracking":backtracking, "global": None}
                 ]
+            if run_experiment == "backtracking":
+                run_instructions = [{"loc": "entropy", "choice": "weighted", "backtracking": True,  "global": "allpatterns"},
+                                    {"loc": "entropy", "choice": "weighted", "backtracking": False, "global": "allpatterns"},
+                                    {"loc": "entropy", "choice": "weighted", "backtracking": True,  "global": None},
+                                    {"loc": "entropy", "choice": "weighted", "backtracking": False, "global": None},]
 
             for experiment in run_instructions:
                 for x in range(screenshots):
@@ -80,7 +86,7 @@ def run_default(run_experiment=False):
                                                        global_constraint=experiment["global"],
                                                        log_filename=log_filename,
                                                        log_stats_to_output=log_stats_to_output,
-                                                       visualize=False,
+                                                       visualize=True,
                                                        logging=True
                     )
                     if solution is None:
@@ -88,4 +94,4 @@ def run_default(run_experiment=False):
                     else:
                         print(solution)
                 
-run_default("heurisitic")
+run_default("heuristic")
