@@ -53,7 +53,7 @@ def run_default(run_experiment=False):
                                     {"loc": "entropy", "choice": "weighted", "backtracking":True, "global": "allpatterns"},
                                     {"loc": "lexical", "choice": "weighted", "backtracking":False, "global": "allpatterns"},
                                     {"loc": "entropy", "choice": "weighted", "backtracking":False, "global": "allpatterns"}]
-            if run_experiment == "heurisitic":
+            if run_experiment == "heuristic":
                 run_instructions = [
                     {"loc": "hilbert", "choice": "weighted", "backtracking":backtracking, "global": None},
                     {"loc": "spiral",  "choice": "weighted", "backtracking":backtracking, "global": None},
