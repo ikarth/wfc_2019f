@@ -58,8 +58,9 @@ def run_default(run_experiment=False):
                     {"loc": "hilbert", "choice": "weighted", "backtracking":backtracking, "global": None},
                     {"loc": "spiral",  "choice": "weighted", "backtracking":backtracking, "global": None},
                     {"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": None},
+                    {"loc": "anti-entropy", "choice": "weighted", "backtracking":backtracking, "global": None},
                     {"loc": "lexical", "choice": "weighted", "backtracking":backtracking, "global": None},
-                    {"loc": "simple",  "choice": "weighted", "backtracking":backtracking, "global": None},                    
+                    {"loc": "simple",  "choice": "weighted", "backtracking":backtracking, "global": None},  
                     {"loc": "random",  "choice": "weighted", "backtracking":backtracking, "global": None}
                 ]
             if run_experiment == "backtracking":
@@ -86,7 +87,7 @@ def run_default(run_experiment=False):
                                                        global_constraint=experiment["global"],
                                                        log_filename=log_filename,
                                                        log_stats_to_output=log_stats_to_output,
-                                                       visualize=True,
+                                                       visualize=False,
                                                        logging=True
                     )
                     if solution is None:

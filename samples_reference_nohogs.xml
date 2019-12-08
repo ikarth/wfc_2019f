@@ -1,10 +1,9 @@
 <samples>
-	<overlapping name="Skyline" N="3" symmetry="2" ground="-1" periodic="True"/>
 	<overlapping name="Chess" N="2" periodic="True"/>
 	<overlapping name="Chess" N="2" width="47" height="47" periodic="True" screenshots="1"/>
+	<overlapping name="Skyline" N="3" symmetry="2" ground="-1" periodic="True"/>
 	<overlapping name="Flowers" N="3" symmetry="2" ground="-4" periodic="True"/>
 	<overlapping name="Hogs" N="3" periodic="True"/>
-	<overlapping name="Hogs" N="2" periodic="True"/>
 	<overlapping name="Knot" N="3" periodic="True"/>
 	<overlapping name="Less Rooms" N="3" periodic="True"/>
 	<overlapping name="Mountains" N="3" symmetry="2" periodic="True"/>
