@@ -95,4 +95,4 @@ def run_default(run_experiment=False):
                     else:
                         print(solution)
                 
-run_default("heuristic")
+run_default()
