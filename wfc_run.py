@@ -68,6 +68,10 @@ def run_default(run_experiment=False):
                                     {"loc": "entropy", "choice": "weighted", "backtracking": False, "global": "allpatterns"},
                                     {"loc": "entropy", "choice": "weighted", "backtracking": True,  "global": None},
                                     {"loc": "entropy", "choice": "weighted", "backtracking": False, "global": None},]
+            if run_experiment == "choices":
+                run_instructions = [{"loc": "entropy", "choice": "rarest", "backtracking": False,  "global": None},
+                                    {"loc": "entropy", "choice": "weighted", "backtracking": False,  "global": None},
+                                    {"loc": "entropy", "choice": "random", "backtracking": False, "global": None},]
 
             for experiment in run_instructions:
                 for x in range(screenshots):
@@ -87,7 +91,7 @@ def run_default(run_experiment=False):
                                                        global_constraint=experiment["global"],
                                                        log_filename=log_filename,
                                                        log_stats_to_output=log_stats_to_output,
-                                                       visualize=False,
+                                                       visualize=True,
                                                        logging=True
                     )
                     if solution is None:
@@ -95,4 +99,4 @@ def run_default(run_experiment=False):
                     else:
                         print(solution)
                 
-run_default("heuristic")
+run_default("choices")
