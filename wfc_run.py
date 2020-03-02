@@ -4,6 +4,7 @@
 import time
 import wfc.wfc_control as wfc_control
 import xml.etree.ElementTree as ET
+import os
 
 def string2bool(strn):
     if isinstance(strn, bool):
@@ -17,7 +18,7 @@ def run_default(run_experiment=False):
     default_backtracking = False
     log_stats_to_output = wfc_control.make_log_stats()
 
-    
+
     for xnode in xdoc.getroot():
         name = xnode.get('name', "NAME")
         if "overlapping" == xnode.tag:
@@ -60,7 +61,7 @@ def run_default(run_experiment=False):
                     {"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": None},
                     {"loc": "anti-entropy", "choice": "weighted", "backtracking":backtracking, "global": None},
                     {"loc": "lexical", "choice": "weighted", "backtracking":backtracking, "global": None},
-                    {"loc": "simple",  "choice": "weighted", "backtracking":backtracking, "global": None},  
+                    {"loc": "simple",  "choice": "weighted", "backtracking":backtracking, "global": None},
                     {"loc": "random",  "choice": "weighted", "backtracking":backtracking, "global": None}
                 ]
             if run_experiment == "backtracking":
@@ -87,12 +88,17 @@ def run_default(run_experiment=False):
                                                        global_constraint=experiment["global"],
                                                        log_filename=log_filename,
                                                        log_stats_to_output=log_stats_to_output,
-                                                       visualize=False,
+                                                       visualize=True,
                                                        logging=True
                     )
                     if solution is None:
                         print(None)
                     else:
                         print(solution)
-                
+                        
+            # These are included for my colab experiments, remove them if you're not me
+            os.system('cp -rf "/content/wfc/output/*.tsv" "/content/drive/My Drive/wfc_exper/2"')
+            os.system('cp -r "/content/wfc/output" "/content/drive/My Drive/wfc_exper/2"')
+
+
 run_default("heuristic")
