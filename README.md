@@ -1,5 +1,12 @@
 # wfc_2019f
 
+This is my research implementation of WaveFunctionCollapse in Python. It has two goals:
+
+* Make it easier to understand how the algorithm operates
+* Provide a testbed for experimenting with alternate heuristics and features
+
+For more general-purpose WFC information, the original reference repository remains the best resource: [https://github.com/mxgmn/WaveFunctionCollapse]
+
 ## Running WFC
 
 If you want direct control over running WFC, call wfc_control.execute_wfc(). 
