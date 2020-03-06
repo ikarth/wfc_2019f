@@ -5,7 +5,7 @@ This is my research implementation of WaveFunctionCollapse in Python. It has two
 * Make it easier to understand how the algorithm operates
 * Provide a testbed for experimenting with alternate heuristics and features
 
-For more general-purpose WFC information, the original reference repository remains the best resource: [https://github.com/mxgmn/WaveFunctionCollapse]
+For more general-purpose WFC information, the original reference repository remains the best resource: https://github.com/mxgmn/WaveFunctionCollapse
 
 ## Running WFC
 
