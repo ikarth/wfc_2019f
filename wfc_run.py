@@ -69,6 +69,15 @@ def run_default(run_experiment=False):
                                     {"loc": "entropy", "choice": "weighted", "backtracking": False, "global": "allpatterns"},
                                     {"loc": "entropy", "choice": "weighted", "backtracking": True,  "global": None},
                                     {"loc": "entropy", "choice": "weighted", "backtracking": False, "global": None},]
+            if run_experiment == "backtracking_heuristic":
+                run_instructions = [{"loc": "lexical", "choice": "weighted", "backtracking": True,  "global": "allpatterns"},
+                                    {"loc": "lexical", "choice": "weighted", "backtracking": False, "global": "allpatterns"},
+                                    {"loc": "lexical", "choice": "weighted", "backtracking": True,  "global": None},
+                                    {"loc": "lexical", "choice": "weighted", "backtracking": False, "global": None},
+                                    {"loc": "random", "choice": "weighted", "backtracking": True,  "global": "allpatterns"},
+                                    {"loc": "random", "choice": "weighted", "backtracking": False, "global": "allpatterns"},
+                                    {"loc": "random", "choice": "weighted", "backtracking": True,  "global": None},
+                                    {"loc": "random", "choice": "weighted", "backtracking": False, "global": None},]
             if run_experiment == "choices":
                 run_instructions = [{"loc": "entropy", "choice": "rarest", "backtracking": False,  "global": None},
                                     {"loc": "entropy", "choice": "weighted", "backtracking": False,  "global": None},
