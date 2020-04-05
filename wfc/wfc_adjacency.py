@@ -64,7 +64,6 @@ def adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, patte
             pattern_1_array[p1_index] = pattern_catalog[pattern_1][top:bottom, left:right]
         pattern_1_array = np.array(pattern_1_array)
         for pattern_2 in pattern_list:
-            countpat += 1
             print(f"{pattern_2} : {countpat} of {len(pattern_list)}")
             shifted = np.roll(np.pad(pattern_catalog[pattern_2], max(pattern_size), mode='constant', constant_values = not_a_number), direction, dimensions)
             compare = shifted[pattern_size[0] : pattern_size[0] + pattern_size[0], pattern_size[1] : pattern_size[1] + pattern_size[1]]
