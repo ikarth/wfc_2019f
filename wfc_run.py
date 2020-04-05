@@ -13,22 +13,33 @@ def string2bool(strn):
 
 def run_default(run_experiment=False):
     log_filename = f"log_{time.time()}"
-    xdoc = ET.ElementTree(file="samples_reference.xml")
+    xdoc = ET.ElementTree(file="samples_keen.xml")
     default_allowed_attempts = 10
     default_backtracking = False
     log_stats_to_output = wfc_control.make_log_stats()
 
+    additional_training_images = []
     for xnode in xdoc.getroot():
         name = xnode.get('name', "NAME")
+        if "add" == xnode.tag:
+            tile_size = int(xnode.get('tile_size', 16))
+            symmetry = int(xnode.get('symmetry', 8))
+            ground = int(xnode.get('ground', 0))
+            periodic_input = string2bool(xnode.get('periodic', False)) # Does the input wrap?
+            additional_training_images.append({"name": name, "tile_size": tile_size, "symmetry": symmetry, "ground": ground, "periodic_input": periodic_input})
+
         if "overlapping" == xnode.tag:
+            training_images = additional_training_images
+            additional_training_images = []
             #seed = 3262
-            tile_size = int(xnode.get('tile_size', 1))
             # seed for random generation, can be any number
             tile_size = int(xnode.get('tile_size', 1)) # size of tile, in pixels
             pattern_width = int(xnode.get('N', 2)) # Size of the patterns we want.
             # 2x2 is the minimum, larger scales get slower fast.
 
             symmetry = int(xnode.get('symmetry', 8))
+            if symmetry < 1:
+                print(f"Warning: symmetry must be at least 1 ({name})")
             ground = int(xnode.get('ground', 0))
             periodic_input = string2bool(xnode.get('periodic', False)) # Does the input wrap?
             periodic_output = string2bool(xnode.get('periodic', False)) # Do we want the output to wrap?
@@ -45,9 +56,9 @@ def run_default(run_experiment=False):
                 run_instructions = [{"loc": "lexical", "choice": "weighted", "backtracking":backtracking, "global": None},
                                     {"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": None},
                                     {"loc": "random",  "choice": "weighted", "backtracking":False, "global": None},
-                                    {"loc": "lexical", "choice": "random",  "backtracking":backtracking, "global": None},
-                                    {"loc": "entropy", "choice": "random",  "backtracking":backtracking, "global": None},
-                                    {"loc": "random",  "choice": "random",  "backtracking":False, "global": None},
+                                    {"loc": "lexical", "choice": "random",   "backtracking":backtracking, "global": None},
+                                    {"loc": "entropy", "choice": "random",   "backtracking":backtracking, "global": None},
+                                    {"loc": "random",  "choice": "random",   "backtracking":False, "global": None},
                                     {"loc": "lexical", "choice": "weighted", "backtracking":True, "global": None},
                                     {"loc": "entropy", "choice": "weighted", "backtracking":True, "global": None},
                                     {"loc": "lexical", "choice": "weighted", "backtracking":True, "global": "allpatterns"},
@@ -61,7 +72,7 @@ def run_default(run_experiment=False):
                     {"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": None},
                     {"loc": "anti-entropy", "choice": "weighted", "backtracking":backtracking, "global": None},
                     {"loc": "lexical", "choice": "weighted", "backtracking":backtracking, "global": None},
-                    {"loc": "simple",  "choice": "weighted", "backtracking":backtracking, "global": None},  
+                    {"loc": "simple",  "choice": "weighted", "backtracking":backtracking, "global": None},
                     {"loc": "random",  "choice": "weighted", "backtracking":backtracking, "global": None}
                 ]
             if run_experiment == "backtracking":
@@ -84,38 +95,42 @@ def run_default(run_experiment=False):
                                     {"loc": "entropy", "choice": "random", "backtracking": False, "global": None},]
 
             for experiment in run_instructions:
-                for x in range(screenshots):
-                    print(f"-: {name} > {x}")
-                    solution = wfc_control.execute_wfc(name,
-                                                       tile_size=tile_size,
-                                                       pattern_width=pattern_width,
-                                                       rotations=symmetry,
-                                                       output_size=generated_size,
-                                                       ground=ground,
-                                                       attempt_limit=allowed_attempts,
-                                                       output_periodic=periodic_output,
-                                                       input_periodic=periodic_input,
-                                                       loc_heuristic=experiment["loc"],
-                                                       choice_heuristic=experiment["choice"],
-                                                       backtracking=experiment["backtracking"],
-                                                       global_constraint=experiment["global"],
-                                                       log_filename=log_filename,
-                                                       log_stats_to_output=log_stats_to_output,
-                                                       visualize=visualize_experiment,
-                                                       logging=True
-                    )
-                    if solution is None:
-                        print(None)
-                    else:
-                        print(solution)
+                try:
+                    for x in range(screenshots):
+                        print(f"-: {name} > {x}")
+                        solution = wfc_control.execute_wfc(name,
+                                                           tile_size=tile_size,
+                                                           pattern_width=pattern_width,
+                                                           rotations=symmetry,
+                                                           output_size=generated_size,
+                                                           ground=ground,
+                                                           attempt_limit=allowed_attempts,
+                                                           output_periodic=periodic_output,
+                                                           input_periodic=periodic_input,
+                                                           loc_heuristic=experiment["loc"],
+                                                           choice_heuristic=experiment["choice"],
+                                                           backtracking=experiment["backtracking"],
+                                                           global_constraint=experiment["global"],
+                                                           log_filename=log_filename,
+                                                           log_stats_to_output=log_stats_to_output,
+                                                           visualize=visualize_experiment,
+                                                           logging=False,
+                                                           additional_training_images=training_images)
+                        if solution is None:
+                            print(None)
+                        else:
+                            print(solution)
+                except FileNotFoundError as e:
+                    print(e)
 
             # These are included for my colab experiments, remove them if you're not me
-            os.system('cp -rf "/content/wfc/output/*.tsv" "/content/drive/My Drive/wfc_exper/2"')
-            os.system('cp -r "/content/wfc/output" "/content/drive/My Drive/wfc_exper/2"')
+            #os.system('cp -rf "/content/wfc/output/*.tsv" "/content/drive/My Drive/wfc_exper/2"')
+            #os.system('cp -r "/content/wfc/output" "/content/drive/My Drive/wfc_exper/2"')
 
-run_default("choice")
-run_default("backtracking")
-run_default("heuristic")
-run_default()
-run_default("choices")
-run_default("backtracking")
+run_default(False)
+
+#run_default("choice")
+#run_default("backtracking")
+#run_default("heuristic")
+#run_default("choices")
+#run_default("backtracking")

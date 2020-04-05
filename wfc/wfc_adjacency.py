@@ -2,6 +2,8 @@
 from collections import Counter
 import numpy as np
 
+import pdb
+
 def adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, pattern_size=[2, 2]):
     """Takes a pattern grid and returns a list of all of the legal adjacencies found in it."""
     dimensions = (1,0)
@@ -56,20 +58,31 @@ def adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, patte
     legal = []
     countpat = 0
     for direction_index, direction in direction_offsets:
+        left = max(0, 0, + direction[0])
+        right = min(pattern_size[0], pattern_size[0] + direction[0])
+        top = max(0, 0 + direction[1])
+        bottom = min(pattern_size[1], pattern_size[1] + direction[1])
+        pattern_1_array = [False] * len(pattern_list)
+        for p1_index, pattern_1 in enumerate(pattern_list):
+            pattern_1_array[p1_index] = pattern_catalog[pattern_1][top:bottom, left:right]
         for pattern_2 in pattern_list:
             countpat += 1
             print(f"{pattern_2} : {countpat} of {len(pattern_list)}")
             shifted = np.roll(np.pad(pattern_catalog[pattern_2], max(pattern_size), mode='constant', constant_values = not_a_number), direction, dimensions)
             compare = shifted[pattern_size[0] : pattern_size[0] + pattern_size[0], pattern_size[1] : pattern_size[1] + pattern_size[1]]
-            for pattern_1 in pattern_list:
-                criteria = []
-                criteria.append(is_valid_overlap_xy(direction, pattern_1, compare))
+            b = compare[top:bottom, left:right]
+            for p1_index, pattern_1 in enumerate(pattern_list):
+                #criteria = []
+                #criteria.append()
                 #criteria.append(is_found_in_source(direction, pattern_1, pattern_2))
-                if all(criteria):
+                a = pattern_1_array[p1_index]
+                res = np.array_equal(a, b)
+                if res:
                     legal.append((direction, pattern_1, pattern_2))
             if countpat >= 5:
                 countpat = 0
                 break
+    print(legal)
     return legal
 
 
