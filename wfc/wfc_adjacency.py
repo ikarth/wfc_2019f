@@ -65,20 +65,25 @@ def adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, patte
         pattern_1_array = [False] * len(pattern_list)
         for p1_index, pattern_1 in enumerate(pattern_list):
             pattern_1_array[p1_index] = pattern_catalog[pattern_1][top:bottom, left:right]
+        pattern_1_array = np.array(pattern_1_array)
         for pattern_2 in pattern_list:
             countpat += 1
             print(f"{pattern_2} : {countpat} of {len(pattern_list)}")
             shifted = np.roll(np.pad(pattern_catalog[pattern_2], max(pattern_size), mode='constant', constant_values = not_a_number), direction, dimensions)
             compare = shifted[pattern_size[0] : pattern_size[0] + pattern_size[0], pattern_size[1] : pattern_size[1] + pattern_size[1]]
             b = compare[top:bottom, left:right]
+            comparison = pattern_1_array == b
             for p1_index, pattern_1 in enumerate(pattern_list):
-                #criteria = []
-                #criteria.append()
-                #criteria.append(is_found_in_source(direction, pattern_1, pattern_2))
                 a = pattern_1_array[p1_index]
                 res = np.array_equal(a, b)
                 if res:
+                    if not np.all(comparison[p1_index]):
+                        print(f"res and comparison mismatch at {p1_index}: {res} vs {comparison[p1_index]}")
                     legal.append((direction, pattern_1, pattern_2))
+                else:
+                    if np.all(comparison[p1_index]):
+                        print(f"comparison and res mismatch at {p1_index}: {res} vs {comparison[p1_index]}")
+
             if countpat >= 5:
                 countpat = 0
                 break
