@@ -11,7 +11,7 @@ def unique_patterns_2d(agrid, ksize, periodic_input):
         # TODO: implement non-wrapped image handling
         #a = np.pad(a, ((0,k-1),(0,k-1),*(((0,0),)*(len(a.shape)-2))), mode='constant', constant_values=None)
         agrid = np.pad(agrid, ((0, ksize - 1), (0, ksize - 1), *(((0, 0), )*(len(agrid.shape) - 2))), mode='wrap')
-    
+
     patches = np.lib.stride_tricks.as_strided(
         agrid,
         (agrid.shape[0] - ksize + 1, agrid.shape[1] - ksize + 1, ksize, ksize, *agrid.shape[2:]),
@@ -42,7 +42,7 @@ def unique_patterns_brute_force(grid, size, periodic_input):
 
 
 def make_pattern_catalog(tile_grid, pattern_width, input_is_periodic=True):
-    """Returns a pattern catalog (dictionary of pattern hashes to consituent tiles), 
+    """Returns a pattern catalog (dictionary of pattern hashes to consituent tiles),
 an ordered list of pattern weights, and an ordered list of pattern contents."""
     patterns_in_grid, pattern_contents_list, patch_codes = unique_patterns_2d(tile_grid, pattern_width, input_is_periodic)
     dict_of_pattern_contents = {}
@@ -72,7 +72,7 @@ def make_pattern_catalog_with_rotations(tile_grid, pattern_width, rotations=7, i
     merged_pattern_contents_list = None
     merged_patch_codes = None
     def _make_catalog():
-        nonlocal rotated_tile_grid, merged_dict_of_pattern_contents, merged_pattern_contents_list, merged_pattern_frequency, merged_patch_codes       
+        nonlocal rotated_tile_grid, merged_dict_of_pattern_contents, merged_pattern_contents_list, merged_pattern_frequency, merged_patch_codes
         dict_of_pattern_contents, pattern_frequency, pattern_contents_list, patch_codes = make_pattern_catalog(rotated_tile_grid, pattern_width, input_is_periodic)
         merged_dict_of_pattern_contents.update(dict_of_pattern_contents)
         merged_pattern_frequency.update(pattern_frequency)
@@ -97,7 +97,7 @@ def make_pattern_catalog_with_rotations(tile_grid, pattern_width, rotations=7, i
         _make_catalog()
         counter += 1
 
-        
+
     #assert False
     return merged_dict_of_pattern_contents, merged_pattern_frequency, merged_pattern_contents_list, merged_patch_codes
 
@@ -133,8 +133,8 @@ def test_unique_patterns_2d():
     patterns_in_grid, pattern_contents_list, patch_codes = unique_patterns_2d(tile_grid, pattern_width, True)
     assert(patch_codes[1][2] == 4867810695119132864)
     assert(pattern_contents_list[7][1][1] == 8253868773529191888)
-    
-    
+
+
 def test_make_pattern_catalog():
     from wfc_tiles import make_tile_catalog
     import imageio
@@ -145,7 +145,7 @@ def test_make_pattern_catalog():
     rotations = 0
     tile_catalog, tile_grid, code_list, unique_tiles = make_tile_catalog(img, tile_size)
 
-    pattern_catalog, pattern_weights, pattern_list, pattern_grid = make_pattern_catalog(tile_grid, pattern_width) 
+    pattern_catalog, pattern_weights, pattern_list, pattern_grid = make_pattern_catalog(tile_grid, pattern_width)
     assert(pattern_weights[-6150964001204120324] == 1)
     assert(pattern_list[3] == 2800765426490226432)
     assert(pattern_catalog[5177878755649963747][0][1] == -8754995591521426669)
@@ -163,8 +163,8 @@ def test_pattern_to_tile():
     pattern_catalog, pattern_weights, pattern_list, pattern_grid = make_pattern_catalog(tile_grid, pattern_width)
     new_tile_grid = pattern_grid_to_tiles(pattern_grid, pattern_catalog)
     assert(np.array_equal(tile_grid, new_tile_grid))
-    
-    
+
+
 if __name__ == "__main__":
     test_unique_patterns_2d()
     test_make_pattern_catalog()

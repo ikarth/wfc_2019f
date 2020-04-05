@@ -13,15 +13,15 @@ from .wfc_patterns import pattern_grid_to_tiles
 RGB_CHANNELS = 3
 def rgb_to_int(rgb_in):
     """"Takes RGB triple, returns integer representation."""
-    return struct.unpack('I', 
-                       struct.pack('<' + 'B' * 4, 
+    return struct.unpack('I',
+                       struct.pack('<' + 'B' * 4,
                                    *(rgb_in + [0] * (4 - len(rgb_in)))))[0]
 def int_to_rgb(val):
     """Convert hashed int to RGB values"""
     return [x for x in val.to_bytes(RGB_CHANNELS, 'little')]
 
 WFC_PARTIAL_BLANK = np.nan
-  
+
 def tile_to_image(tile, tile_catalog, tile_size, visualize=False):
     """
     Takes a single tile and returns the pixel image representation.
@@ -39,7 +39,7 @@ def tile_to_image(tile, tile_catalog, tile_size, visualize=False):
             else:
                 if (visualize) and -2 == tile:
                     pixel = [0, 255, 255]
-                else:            
+                else:
                     pixel = tile_catalog[tile][u, v]
             new_img[u, v] = pixel
     return new_img
@@ -59,7 +59,7 @@ def make_solver_loggers(filename, stats={}):
     counter_wave = 0
     counter_backtracks = 0
     counter_propagate = 0
-    
+
     def choice_count(pattern, i, j, wave=None):
         nonlocal counter_choices
         counter_choices += 1
@@ -71,11 +71,11 @@ def make_solver_loggers(filename, stats={}):
     def backtrack_count():
         nonlocal counter_backtracks
         counter_backtracks += 1
-      
+
     def propagate_count(wave):
         nonlocal counter_propagate
         counter_propagate += 1
-      
+
     def final_count(wave):
         print(f"{filename}: choices: {counter_choices}, wave:{counter_wave}, backtracks: {counter_backtracks}, propagations: {counter_propagate}")
         stats.update({"choices": counter_choices, "wave": counter_wave, "backtracks": counter_backtracks, "propagations": counter_propagate})
@@ -86,7 +86,7 @@ def make_solver_loggers(filename, stats={}):
         return stats
 
     return choice_count, wave_count, backtrack_count, propagate_count, final_count, report_count
-  
+
 
 def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalog=None, tile_catalog=None, tile_size=[1, 1]):
     """Construct visualizers for displaying the intermediate solver status"""
@@ -107,7 +107,7 @@ def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalo
       local_solution_as_ids = np.full(wave.shape[1:], decode_patterns[i])
       local_solution_tile_grid = pattern_grid_to_tiles(local_solution_as_ids, pattern_catalog)
       tile_wave[i] = local_solution_tile_grid
-    
+
     def choice_vis(pattern, i, j, wave=None):
         nonlocal choice_count
         nonlocal resolution_order
@@ -127,9 +127,9 @@ def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalo
             resolution_order[resolved_by_propagation] = choice_count
             if output_individual_visualizations:
               figure_solver_data(f"visualization/{filename}_wave_{choice_count}.png", "patterns remaining", np.count_nonzero(wave > 0, axis=0), 0, wave.shape[0], "plasma")
-        
-        
-        
+
+
+
     def wave_vis(wave):
         nonlocal vis_count
         nonlocal resolution_method
@@ -162,11 +162,11 @@ def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalo
                 #{"title": "resolved by propagation", "data": resolved_by_propagation.T, "vmin": 0, "vmax": 2, "cmap": "inferno", "datatype":"figure"},
                 {"title": "order of resolution", "data": resolution_order.T, "vmin": 0, "vmax": max_choices / 4, "cmap": "hsv", "datatype":"figure"},
                 {"title": "chosen pattern", "data": pattern_solution.T, "vmin": 0, "vmax": pattern_total_count, "cmap": "viridis", "datatype":"figure"},
-                {"title": "resolution method", "data": resolution_method.T, "vmin": 0, "vmax": 2, "cmap": "magma", "datatype":"figure"},   
+                {"title": "resolution method", "data": resolution_method.T, "vmin": 0, "vmax": 2, "cmap": "magma", "datatype":"figure"},
                 {"title": "patterns remaining", "data": pattern_left_count.T, "vmin": 0, "vmax": pattern_total_count, "cmap": "viridis", "datatype":"figure"},
                 {"title": "tiles assigned", "data": solution_tile_grid.T, "vmin": None, "vmax": None, "cmap": "prism", "datatype":"figure"},
                 {"title": "solved tiles", "data": masked_img.astype(np.uint8), "datatype":"image"}
-             ] 
+             ]
             figure_unified("Solver Readout", f"visualization/{filename}_readout_{choice_count:03}_{vis_count:03}.png", fig_list)
 
     def backtrack_vis():
@@ -176,7 +176,7 @@ def make_solver_visualizers(filename, wave, decode_patterns=None, pattern_catalo
         backtracking_count += 1
         vis_count += 1
         pattern_solution = np.full(wave.shape[1:], -1)
-      
+
     return choice_vis, wave_vis, backtrack_vis, None, wave_vis, None
 
 def figure_unified(figure_name_overall, filename, data):
@@ -194,14 +194,14 @@ def figure_unified(figure_name_overall, filename, data):
     plt.savefig(filename, bbox_inches="tight", pad_inches=0, dpi=600)
     plt.close(fig=matfig)
     plt.close('all')
-    
+
 
 vis_count = 0
 def visualize_solver(wave):
   pattern_left_count = np.count_nonzero(wave > 0, axis=0)
   pattern_total_count = wave.shape[0]
   figure_wave_patterns(pattern_left_count, pattern_total_count)
-  
+
 
 def make_figure_solver_image(plot_title, img):
     visfig = plt.figure(figsize=(4,4), edgecolor='k', frameon=True)
@@ -210,18 +210,18 @@ def make_figure_solver_image(plot_title, img):
     plt.grid(None)
     plt.grid(None)
     an_ax = plt.gca()
-    an_ax.get_xaxis().set_visible(False) 
-    an_ax.get_yaxis().set_visible(False) 
+    an_ax.get_xaxis().set_visible(False)
+    an_ax.get_yaxis().set_visible(False)
     return visfig
-  
-  
+
+
 def figure_solver_image(filename, plot_title, img):
   visfig = make_figure_solver_image(plot_title, img)
   plt.savefig(filename, bbox_inches="tight", pad_inches=0)
   plt.close(fig=visfig)
   plt.close('all')
 
- 
+
 def make_figure_solver_data(plot_title, data, min_count, max_count, cmap_name):
   visfig = plt.figure(figsize=(4,4), edgecolor='k', frameon=True)
   plt.title(plot_title)
@@ -229,11 +229,11 @@ def make_figure_solver_data(plot_title, data, min_count, max_count, cmap_name):
   plt.grid(None)
   plt.grid(None)
   ax = plt.gca()
-  ax.get_xaxis().set_visible(False) 
+  ax.get_xaxis().set_visible(False)
   ax.get_yaxis().set_visible(False)
   return visfig
-  
-  
+
+
 def figure_solver_data(filename, plot_title, data, min_count, max_count, cmap_name):
     visfig = make_figure_solver_data(plot_title, data, min_count, max_count, cmap_name)
     plt.savefig(filename, bbox_inches="tight", pad_inches=0)
@@ -241,7 +241,7 @@ def figure_solver_data(filename, plot_title, data, min_count, max_count, cmap_na
     plt.close('all')
 
 
-  
+
 def figure_wave_patterns(filename, pattern_left_count, max_count):
   global vis_count
   vis_count += 1
@@ -255,7 +255,7 @@ def figure_wave_patterns(filename, pattern_left_count, max_count):
   plt.savefig(f"{filename}_wave_patterns_{vis_count}.png")
   plt.close(fig=visfig)
 
- 
+
 def tile_grid_to_average(tile_grid, tile_catalog, tile_size, color_channels=3):
   """
   Takes a masked array of tile grid stacks and transforms it into an image, taking
@@ -273,8 +273,8 @@ def tile_grid_to_average(tile_grid, tile_catalog, tile_size, color_channels=3):
           # TODO: will need to change if using an image with more than 3 channels
           new_img[(i * tile_size[0]) + u, (j * tile_size[1]) + v] = np.resize(pixel, new_img[(i * tile_size[0]) + u, (j * tile_size[1]) + v].shape)
   return new_img
-    
-  
+
+
 def tile_grid_to_image(tile_grid, tile_catalog, tile_size, visualize=False, partial=False, color_channels=3):
     """
     Takes a tile_grid and transforms it into an image, using the information
@@ -328,16 +328,19 @@ def figure_false_color_tile_grid(tile_grid, output_filename="./false_color_tiles
     figure_plot.axes.grid(None)
     plt.savefig(output_filename + ".png", bbox_inches="tight")
     plt.close()
-    
+
 def figure_tile_grid(tile_grid, tile_catalog, tile_size):
   img = tile_grid_to_image(tile_grid, tile_catalog, tile_size)
-  
 
 
-def render_pattern(render_pattern, tile_catalog):
+
+def render_pattern(render_pattern, tile_catalog, tile_size=1):
   """Turn a pattern into an image"""
   rp_iter = np.nditer(render_pattern, flags=['multi_index'])
-  output = np.zeros(render_pattern.shape + (3,), dtype=np.uint32)
+  #print(render_pattern.shape)
+  #print(np.multiply(render_pattern.shape + (3,), tile_size))
+  output = np.zeros(np.multiply(render_pattern.shape + (3,), tile_size), dtype=np.uint32)
+  #print(output)
   while not rp_iter.finished:
     # Note that this truncates images with more than 3 channels down to just the channels in the output.
     # If we want to have alpha channels, we'll need a different way to handle this.
@@ -345,7 +348,7 @@ def render_pattern(render_pattern, tile_catalog):
     rp_iter.iternext()
   return output
 
-def figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, pattern_width, output_filename="pattern_catalog"):
+def figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, pattern_width, output_filename="pattern_catalog", tile_size=1):
     s_columns = 24 // min(24, pattern_width)
     s_rows = 1 + (int(len(pattern_catalog)) // s_columns)
     fig = plt.figure(figsize=(s_columns, s_rows * 1.5))
@@ -353,7 +356,9 @@ def figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, patte
     counter = 0
     for i, tcode in pattern_catalog.items():
         pat_cat = pattern_catalog[i]
-        ptr = render_pattern(pat_cat, tile_catalog).astype(np.uint8)
+        #print(pat_cat)
+        ptr = render_pattern(pat_cat, tile_catalog, 1).astype(np.uint8)
+        #ptr = tile_grid_to_image(ptr, tile_catalog, tile_size, visualize=True).astype(np.uint8)
         sp = plt.subplot(s_rows, s_columns, counter + 1)
         spi = sp.imshow(ptr)
         spi.axes.xaxis.set_label_text(f'({pattern_weights[i]})')
@@ -377,7 +382,7 @@ def blit(destination, sprite, upper_left, layer = False, check=False):
     lower_right = [((a + b) if ((a + b) < c) else c) for a,b,c in zip(upper_left, sprite.shape, destination.shape)]
     if min(lower_right) < 0:
         return
-    
+
     for i_index, i in enumerate(range(upper_left[0], lower_right[0])):
         for j_index, j in enumerate(range(upper_left[1], lower_right[1])):
             if (i >= 0) and (j >= 0):
@@ -396,15 +401,15 @@ def blit(destination, sprite, upper_left, layer = False, check=False):
 class InvalidAdjacency(Exception):
   """The combination of patterns and offsets results in pattern combinations that don't match."""
   pass
-  
+
 def validate_adjacency(pattern_a, pattern_b, preview_size, upper_left_of_center, adj_rel):
   preview_adj_a_first = np.full((preview_size, preview_size), -1, dtype=np.int64)
-  preview_adj_b_first = np.full((preview_size, preview_size), -1, dtype=np.int64)      
+  preview_adj_b_first = np.full((preview_size, preview_size), -1, dtype=np.int64)
   blit(preview_adj_b_first, pattern_b,
        (upper_left_of_center[1] + adj_rel[0][1],
         upper_left_of_center[0] + adj_rel[0][0]), check=True)
   blit(preview_adj_b_first, pattern_a, upper_left_of_center, check=True)
-  
+
   blit(preview_adj_a_first, pattern_a, upper_left_of_center, check=True)
   blit(preview_adj_a_first, pattern_b,
        (upper_left_of_center[1] + adj_rel[0][1],
@@ -417,8 +422,8 @@ def validate_adjacency(pattern_a, pattern_b, preview_size, upper_left_of_center,
     print(preview_adj_b_first)
     raise InvalidAdjacency
 
-  
-  
+
+
 def figure_adjacencies(adjacency_relations_list, adjacency_directions, tile_catalog, patterns, pattern_width, tile_size, output_filename="adjacency", render_b_first=False):
 #    try:
         adjacency_directions_list = list(dict(adjacency_directions).values())
@@ -428,7 +433,7 @@ def figure_adjacencies(adjacency_relations_list, adjacency_directions, tile_cata
 
         for i,adj_rel in enumerate(adjacency_relations_list[:64]):
             preview_size = (pattern_width + max_offset * 2)
-            preview_adj = np.full((preview_size, preview_size), -1, dtype=np.int64)    
+            preview_adj = np.full((preview_size, preview_size), -1, dtype=np.int64)
             upper_left_of_center = [max_offset,max_offset]
 
             pattern_a = patterns[adj_rel[1]]
@@ -436,28 +441,27 @@ def figure_adjacencies(adjacency_relations_list, adjacency_directions, tile_cata
             validate_adjacency(pattern_a, pattern_b, preview_size, upper_left_of_center, adj_rel)
             if render_b_first:
               blit(preview_adj, pattern_b,
-                 (upper_left_of_center[1] + adj_rel[0][1], 
+                 (upper_left_of_center[1] + adj_rel[0][1],
                   upper_left_of_center[0] + adj_rel[0][0]), check=True)
               blit(preview_adj, pattern_a, upper_left_of_center, check=True)
             else:
               blit(preview_adj, pattern_a, upper_left_of_center, check=True)
               blit(preview_adj, pattern_b,
-                   (upper_left_of_center[1] + adj_rel[0][1], 
+                   (upper_left_of_center[1] + adj_rel[0][1],
                     upper_left_of_center[0] + adj_rel[0][0]), check=True)
 
             ptr = tile_grid_to_image(preview_adj, tile_catalog, tile_size, visualize=True).astype(np.uint8)
-            
+
             subp = plt.subplot(math.ceil(len(adjacency_relations_list[:64]) / 4),4, i+1)
             spi = subp.imshow(ptr)
             spi.axes.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
             plt.title(f'{i}:\n({adj_rel[1]} +\n{adj_rel[2]})\n by {adj_rel[0]}', fontsize=10)
-            
+
             indicator_rect = matplotlib.patches.Rectangle((upper_left_of_center[1] - 0.51, upper_left_of_center[0] - 0.51), pattern_width, pattern_width, Fill=False, edgecolor='b', linewidth=3.0, linestyle=':')
-            
+
             spi.axes.add_artist(indicator_rect)
             spi.axes.grid(False)
         plt.savefig(output_filename + "_adjacency.pdf", bbox_inches="tight")
         plt.close()
 #    except ValueError as e:
 #        print(e)
-

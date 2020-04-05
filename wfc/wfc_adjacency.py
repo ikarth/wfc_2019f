@@ -4,16 +4,16 @@ import numpy as np
 
 def adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, pattern_size=[2, 2]):
     """Takes a pattern grid and returns a list of all of the legal adjacencies found in it."""
+    dimensions = (1,0)
+    not_a_number = -1
     def is_valid_overlap_xy(adjacency_direction, pattern_1, pattern_2):
-        """Given a direction and two patterns, find the overlap of the two patterns 
+        """Given a direction and two patterns, find the overlap of the two patterns
         and return True if the intersection matches."""
-        dimensions = (1,0)
-        not_a_number = -1
 
         #TODO: can probably speed this up by using the right slices, rather than rolling the whole pattern...
-        shifted = np.roll(np.pad(pattern_catalog[pattern_2], max(pattern_size), mode='constant', constant_values = not_a_number), adjacency_direction, dimensions)
-        compare = shifted[pattern_size[0] : pattern_size[0] + pattern_size[0], pattern_size[1] : pattern_size[1] + pattern_size[1]]
-        
+        #shifted = np.roll(np.pad(pattern_catalog[pattern_2], max(pattern_size), mode='constant', constant_values = not_a_number), adjacency_direction, dimensions)
+        #compare = shifted[pattern_size[0] : pattern_size[0] + pattern_size[0], pattern_size[1] : pattern_size[1] + pattern_size[1]]
+
         left = max(0, 0, + adjacency_direction[0])
         right = min(pattern_size[0], pattern_size[0] + adjacency_direction[0])
         top = max(0, 0 + adjacency_direction[1])
@@ -23,17 +23,55 @@ def adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, patte
         res = np.array_equal(a, b)
         return res
 
-    
+    def is_valid_overlap_xy_fast(adjacency_direction, pattern_1, pattern_2):
+
+        return True
+
+    print("===PATTERN GRID===")
+    print(pattern_grid)
+
+    def is_found_in_source(adjacency_direction, pattern_1, pattern_2):
+        """Is the combination found in the wild in the pattern grid? Some legal adjacencies won't have examples in the data."""
+        # for index, pat in np.ndenumerate(pattern_grid):
+        #     offset = np.add(index, adjacency_direction)
+        #     not_offset = np.add(index, [0,0])
+        #     try:
+        #         #print(pattern_grid.shape)
+        #         #print(max(pattern_grid.shape))
+        #         print(f"{index} + {adjacency_direction} = {offset} : {pat} ~ {not_offset}")
+        #         print(pattern_grid[offset])
+        #         print(pattern_grid[index])
+        #         print(pattern_grid[not_offset])
+        #         raise Error
+        #         #print(pat)
+        #         #print(np.equal(pat, pattern_grid[offset]))
+        #     except IndexError:
+        #         pass
+
+        return True # TODO
+
+
 
     pattern_list = list(pattern_catalog.keys())
     legal = []
-    for pattern_1 in pattern_list:
+    countpat = 0
+    for direction_index, direction in direction_offsets:
         for pattern_2 in pattern_list:
-            for direction_index, direction in direction_offsets:
-                if is_valid_overlap_xy(direction, pattern_1, pattern_2):
+            countpat += 1
+            print(f"{pattern_2} : {countpat} of {len(pattern_list)}")
+            shifted = np.roll(np.pad(pattern_catalog[pattern_2], max(pattern_size), mode='constant', constant_values = not_a_number), direction, dimensions)
+            compare = shifted[pattern_size[0] : pattern_size[0] + pattern_size[0], pattern_size[1] : pattern_size[1] + pattern_size[1]]
+            for pattern_1 in pattern_list:
+                criteria = []
+                criteria.append(is_valid_overlap_xy(direction, pattern_1, compare))
+                #criteria.append(is_found_in_source(direction, pattern_1, pattern_2))
+                if all(criteria):
                     legal.append((direction, pattern_1, pattern_2))
+            if countpat >= 5:
+                countpat = 0
+                break
     return legal
-    
+
 
 
 def test_adjacency_extraction():

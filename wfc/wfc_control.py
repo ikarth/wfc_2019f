@@ -19,7 +19,7 @@ def visualize_tiles(unique_tiles, tile_catalog, tile_grid):
 
 def visualize_patterns(pattern_catalog, tile_catalog, pattern_weights, pattern_width):
     if False:
-        figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, pattern_width)
+        figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, pattern_width, tile_size=tile_size)
 
 
 def make_log_stats():
@@ -39,7 +39,7 @@ def make_log_stats():
     return log_stats
 
 
-def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size=[48,48], ground=None, attempt_limit=10, output_periodic=True, input_periodic=True, loc_heuristic="lexical", choice_heuristic="lexical", visualize=True, global_constraint=False, backtracking=False, log_filename="log", logging=True, global_constraints=None, log_stats_to_output=None):
+def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size=[48,48], ground=None, attempt_limit=10, output_periodic=True, input_periodic=True, loc_heuristic="lexical", choice_heuristic="lexical", visualize=True, global_constraint=False, backtracking=False, log_filename="log", logging=True, global_constraints=None, log_stats_to_output=None, additional_training_images=[]):
     timecode = f"{time.time()}"
     time_begin = time.time()
     output_destination = r"./output/"
@@ -60,30 +60,47 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
     tile_catalog, tile_grid, code_list, unique_tiles = make_tile_catalog(img, tile_size)
     pattern_catalog, pattern_weights, pattern_list, pattern_grid = make_pattern_catalog_with_rotations(tile_grid, pattern_width, input_is_periodic=input_periodic, rotations=rotations)
 
+    # for input_image in additional_training_images:
+    #     print(input_image)
+    #     inimg = imageio.imread(input_folder + input_image["name"] + ".png")
+    #     inimg = inimg[:,:,:3] # TODO: handle alpha channels
+    #     tcat, tgrid, clist, utiles = make_tile_catalog(inimg, tile_size)
+    #     pcatalog, pweights, plist, pgrid = make_pattern_catalog_with_rotations(tgrid, pattern_width, input_is_periodic=input_image["periodic_input"], rotations=input_image["symmetry"])
+    #     tile_catalog.extend(tcat)
+    #     #tile_grid.extend(tgrid)
+    #     #code_list.extend(clist)
+    #     #unique_tiles.extend(utiles)
+    #     pattern_catalog.extend(pcatalog)
+    #     pattern_weights.extend(pweights)
+    #     pattern_list.extend(plist)
+    #     #pattern_grid.extend(pgrid)
+    #     #unique_tiles = set(unique_tiles)
+
     print("pattern catalog")
 
     #visualize_tiles(unique_tiles, tile_catalog, tile_grid)
     #visualize_patterns(pattern_catalog, tile_catalog, pattern_weights, pattern_width)
     #figure_list_of_tiles(unique_tiles, tile_catalog, output_filename=f"visualization/tilelist_{filename}_{timecode}")
     #figure_false_color_tile_grid(tile_grid, output_filename=f"visualization/tile_falsecolor_{filename}_{timecode}")
+    filename_no_slash = filename.replace("/", "_")
     if visualize:
-        figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, pattern_width, output_filename=f"visualization/pattern_catalog_{filename}_{timecode}")
+        figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, pattern_width, output_filename=f"visualization/pattern_catalog_{filename_no_slash}_{timecode}", tile_size=tile_size)
 
     print("profiling adjacency relations")
     adjacency_relations = None
 
-    if False:
+    if True:
         profiler = pprofile.Profile()
         with profiler:
             adjacency_relations = adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, [pattern_width, pattern_width])
-        profiler.dump_stats(f"logs/profile_adj_{filename}_{timecode}.txt")
+        profiler.dump_stats(f"logs/profile_adj_{filename_no_slash}_{timecode}.txt")
     else:
         adjacency_relations = adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, [pattern_width, pattern_width])
 
     print("adjacency_relations")
 
     if visualize:
-        figure_adjacencies(adjacency_relations, direction_offsets, tile_catalog, pattern_catalog, pattern_width, [tile_size, tile_size], output_filename=f"visualization/adjacency_{filename}_{timecode}_A")
+        figure_adjacencies(adjacency_relations, direction_offsets, tile_catalog, pattern_catalog, pattern_width, [tile_size, tile_size], output_filename=f"visualization/adjacency_{filename_no_slash}_{timecode}_A")
         #figure_adjacencies(adjacency_relations, direction_offsets, tile_catalog, pattern_catalog, pattern_width, [tile_size, tile_size], output_filename=f"visualization/adjacency_{filename}_{timecode}_B", render_b_first=True)
 
     print(f"output size: {output_size}\noutput periodic: {output_periodic}")
@@ -92,6 +109,8 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
     decode_patterns = dict(enumerate(pattern_list))
     encode_patterns = {x: i for i, x in enumerate(pattern_list)}
     encode_directions = {j:i for i,j in direction_offsets}
+
+    raise Error
 
     adjacency_list = {}
     for i,d in direction_offsets:
@@ -117,7 +136,7 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
     if not (ground_list is None):
         ground_catalog = {encode_patterns[k]:v for k,v in pattern_catalog.items() if encode_patterns[k] in ground_list}
         if visualize:
-            figure_pattern_catalog(ground_catalog, tile_catalog, pattern_weights, pattern_width, output_filename=f"visualization/patterns_ground_{filename}_{timecode}")
+            figure_pattern_catalog(ground_catalog, tile_catalog, pattern_weights, pattern_width, output_filename=f"visualization/patterns_ground_{filename_no_slash}_{timecode}", tile_size=tile_size)
 
     wave = makeWave(number_of_patterns, output_size[0], output_size[1], ground=ground_list)
     adjacency_matrix = makeAdj(adjacency_list)
@@ -157,12 +176,12 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
 
     visualize_choice, visualize_wave, visualize_backtracking, visualize_propagate, visualize_final, visualize_after = None, None, None, None, None, None
     if visualize:
-        visualize_choice, visualize_wave, visualize_backtracking, visualize_propagate, visualize_final, visualize_after = make_solver_visualizers(f"{filename}_{timecode}", wave, decode_patterns=decode_patterns, pattern_catalog=pattern_catalog, tile_catalog=tile_catalog, tile_size=[tile_size, tile_size])
+        visualize_choice, visualize_wave, visualize_backtracking, visualize_propagate, visualize_final, visualize_after = make_solver_visualizers(f"{filename_no_slash}_{timecode}", wave, decode_patterns=decode_patterns, pattern_catalog=pattern_catalog, tile_catalog=tile_catalog, tile_size=[tile_size, tile_size])
     if logging:
-        visualize_choice, visualize_wave, visualize_backtracking, visualize_propagate, visualize_final, visualize_after = make_solver_loggers(f"{filename}_{timecode}", input_stats.copy())
+        visualize_choice, visualize_wave, visualize_backtracking, visualize_propagate, visualize_final, visualize_after = make_solver_loggers(f"{filename_no_slash}_{timecode}", input_stats.copy())
     if logging and visualize:
-        vis = make_solver_visualizers(f"{filename}_{timecode}", wave, decode_patterns=decode_patterns, pattern_catalog=pattern_catalog, tile_catalog=tile_catalog, tile_size=[tile_size, tile_size])
-        log = make_solver_loggers(f"{filename}_{timecode}", input_stats.copy())
+        vis = make_solver_visualizers(f"{filename_no_slash}_{timecode}", wave, decode_patterns=decode_patterns, pattern_catalog=pattern_catalog, tile_catalog=tile_catalog, tile_size=[tile_size, tile_size])
+        log = make_solver_loggers(f"{filename_no_slash}_{timecode}", input_stats.copy())
 
         def visfunc(idx):
             def vf(*args, **kwargs):
@@ -210,7 +229,7 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
         #profiler = pprofile.Profile()
         if True:
         #with profiler:
-            #with PyCallGraph(output=GraphvizOutput(output_file=f"visualization/pycallgraph_{filename}_{timecode}.png")):
+            #with PyCallGraph(output=GraphvizOutput(output_file=f"visualization/pycallgraph_{filename_no_slash}_{timecode}.png")):
                 try:
                     solution = run(wave.copy(),
                                    adjacency_matrix,
@@ -234,7 +253,7 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
 
                     print("Solution:")
                     #print(solution_tile_grid)
-                    render_tiles_to_output(solution_tile_grid, tile_catalog, [tile_size, tile_size], output_destination + filename + "_" + timecode + ".png")
+                    render_tiles_to_output(solution_tile_grid, tile_catalog, [tile_size, tile_size], output_destination + filename_no_slash + "_" + timecode + ".png")
 
                     time_solve_end = time.time()
                     stats.update({"outcome":"success"})
@@ -253,7 +272,7 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
                     if visualize_after:
                         stats = visualize_after()
                     stats.update({"outcome":"contradiction"})
-        #profiler.dump_stats(f"logs/profile_{filename}_{timecode}.txt")
+        #profiler.dump_stats(f"logs/profile_{filename_no_slash}_{timecode}.txt")
 
         outstats = {}
         outstats.update(input_stats)
