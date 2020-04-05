@@ -56,6 +56,7 @@ def adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, patte
 
     pattern_list = list(pattern_catalog.keys())
     legal = []
+    legal_comparison = []
     countpat = 0
     for direction_index, direction in direction_offsets:
         left = max(0, 0, + direction[0])
@@ -73,21 +74,20 @@ def adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, patte
             compare = shifted[pattern_size[0] : pattern_size[0] + pattern_size[0], pattern_size[1] : pattern_size[1] + pattern_size[1]]
             b = compare[top:bottom, left:right]
             comparison = pattern_1_array == b
-            for p1_index, pattern_1 in enumerate(pattern_list):
-                a = pattern_1_array[p1_index]
-                res = np.array_equal(a, b)
-                if res:
-                    legal.append((direction, pattern_1, pattern_2))
+            #for p1_index, pattern_1 in enumerate(pattern_list):
+            #    a = pattern_1_array[p1_index]
+            #    res = np.array_equal(a, b)
+            #    if res:
+            #        legal.append((direction, pattern_1, pattern_2))
 
             for p1_index, pattern_1 in enumerate(pattern_list):
                 if np.all(comparison[p1_index]):
-                    legal.append((direction, pattern_1, pattern_2))
+                    legal_comparison.append((direction, pattern_1, pattern_2))
 
             if countpat >= 5:
                 countpat = 0
                 break
-    print(legal)
-    return legal
+    return legal_comparison
 
 
 
