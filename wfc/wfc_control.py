@@ -89,7 +89,7 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
     print("profiling adjacency relations")
     adjacency_relations = None
 
-    if True:
+    if False:
         profiler = pprofile.Profile()
         with profiler:
             adjacency_relations = adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, [pattern_width, pattern_width])
@@ -109,8 +109,6 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
     decode_patterns = dict(enumerate(pattern_list))
     encode_patterns = {x: i for i, x in enumerate(pattern_list)}
     encode_directions = {j:i for i,j in direction_offsets}
-
-    raise Error
 
     adjacency_list = {}
     for i,d in direction_offsets:

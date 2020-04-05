@@ -29,8 +29,8 @@ def adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, patte
 
         return True
 
-    print("===PATTERN GRID===")
-    print(pattern_grid)
+    #print("===PATTERN GRID===")
+    #print(pattern_grid)
 
     def is_found_in_source(adjacency_direction, pattern_1, pattern_2):
         """Is the combination found in the wild in the pattern grid? Some legal adjacencies won't have examples in the data."""
@@ -52,12 +52,8 @@ def adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, patte
 
         return True # TODO
 
-
-
     pattern_list = list(pattern_catalog.keys())
-    legal = []
     legal_comparison = []
-    countpat = 0
     for direction_index, direction in direction_offsets:
         left = max(0, 0, + direction[0])
         right = min(pattern_size[0], pattern_size[0] + direction[0])
@@ -74,19 +70,9 @@ def adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, patte
             compare = shifted[pattern_size[0] : pattern_size[0] + pattern_size[0], pattern_size[1] : pattern_size[1] + pattern_size[1]]
             b = compare[top:bottom, left:right]
             comparison = pattern_1_array == b
-            #for p1_index, pattern_1 in enumerate(pattern_list):
-            #    a = pattern_1_array[p1_index]
-            #    res = np.array_equal(a, b)
-            #    if res:
-            #        legal.append((direction, pattern_1, pattern_2))
-
             for p1_index, pattern_1 in enumerate(pattern_list):
                 if np.all(comparison[p1_index]):
                     legal_comparison.append((direction, pattern_1, pattern_2))
-
-            if countpat >= 5:
-                countpat = 0
-                break
     return legal_comparison
 
 
