@@ -77,12 +77,11 @@ def adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, patte
                 a = pattern_1_array[p1_index]
                 res = np.array_equal(a, b)
                 if res:
-                    if not np.all(comparison[p1_index]):
-                        print(f"res and comparison mismatch at {p1_index}: {res} vs {comparison[p1_index]}")
                     legal.append((direction, pattern_1, pattern_2))
-                else:
-                    if np.all(comparison[p1_index]):
-                        print(f"comparison and res mismatch at {p1_index}: {res} vs {comparison[p1_index]}")
+
+            for p1_index, pattern_1 in enumerate(pattern_list):
+                if np.all(comparison[p1_index]):
+                    legal.append((direction, pattern_1, pattern_2))
 
             if countpat >= 5:
                 countpat = 0
