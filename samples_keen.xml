@@ -1,21 +1,63 @@
 <samples>
-	<add name="keen1/002" tile_size="16"/>
-	<overlapping name="mindustry/screenshot-1586016591537" N="2" periodic="False" width="6" height="6" tile_size="8" screenshots="1" symmetry="1"/>
-	<overlapping name="keen1/001" N="3" periodic="False" width="6" height="6" tile_size="16" screenshots="1" symmetry="1"/>
-	<overlapping name="mindustry/screenshot-1586016591537" N="3" periodic="False" width="6" height="6" tile_size="8" screenshots="1" symmetry="1"/>
-	<overlapping name="keen1/001" N="3" periodic="False" width="6" height="6" tile_size="16" screenshots="1" symmetry="2"/>
-	<overlapping name="mindustry/screenshot-1586016591537" N="3" periodic="False" width="6" height="6" tile_size="8" screenshots="2" symmetry="1"/>
-	<overlapping name="keen1/001" N="3" periodic="False" width="6" height="6" tile_size="8" screenshots="1" symmetry="1"/>
-	<overlapping name="mindustry/screenshot-1586016591537" N="3" periodic="False" width="6" height="6" tile_size="4" screenshots="1" symmetry="1"/>
+	<overlapping name="keen1/001" N="2" periodic="False" width="8" height="8" tile_size="16" screenshots="1" symmetry="1"/>
+	<add name="keen1/003" tile_size="16" symmetry="1"/>
+	<overlapping name="keen1/001" N="2" periodic="False" width="8" height="8" tile_size="16" screenshots="1" symmetry="1"/>
+	<add name="keen1/002" tile_size="16" symmetry="1"/>
+	<add name="keen1/003" tile_size="16" symmetry="1"/>
+	<overlapping name="keen1/001" N="2" periodic="False" width="8" height="8" tile_size="16" screenshots="1" symmetry="1"/>
+	<add name="keen1/003" tile_size="16" symmetry="1"/>
+	<add name="keen1/004" tile_size="16" symmetry="1"/>
+	<add name="keen1/007" tile_size="16" symmetry="1"/>
+	<add name="keen1/008" tile_size="16" symmetry="1"/>
+	<add name="keen1/013" tile_size="16" symmetry="1"/>
+	<add name="keen1/014" tile_size="16" symmetry="1"/>
+	<add name="keen1/015" tile_size="16" symmetry="1"/>
+	<overlapping name="keen1/001" N="2" periodic="False" width="32" height="16" tile_size="16" screenshots="1" symmetry="1"/>
+	<add name="keen1/003" tile_size="16" symmetry="1"/>
+	<add name="keen1/004" tile_size="16" symmetry="1"/>
+	<add name="keen1/007" tile_size="16" symmetry="1"/>
+	<add name="keen1/008" tile_size="16" symmetry="1"/>
+	<add name="keen1/013" tile_size="16" symmetry="1"/>
+	<add name="keen1/014" tile_size="16" symmetry="1"/>
+	<add name="keen1/015" tile_size="16" symmetry="1"/>
+	<overlapping name="keen1/001" N="3" periodic="False" width="32" height="16" tile_size="16" screenshots="1" symmetry="1"/>
+	<add name="keen1/003" tile_size="16" symmetry="1"/>
+	<add name="keen1/004" tile_size="16" symmetry="1"/>
+	<add name="keen1/007" tile_size="16" symmetry="1"/>
+	<add name="keen1/008" tile_size="16" symmetry="1"/>
+	<add name="keen1/013" tile_size="16" symmetry="1"/>
+	<add name="keen1/014" tile_size="16" symmetry="1"/>
+	<add name="keen1/015" tile_size="16" symmetry="1"/>
+	<overlapping name="keen1/001" N="4" periodic="False" width="32" height="16" tile_size="16" screenshots="3" symmetry="1"/>
+	<add name="keen1/003" tile_size="16" symmetry="1"/>
+	<add name="keen1/004" tile_size="16" symmetry="1"/>
+	<add name="keen1/007" tile_size="16" symmetry="1"/>
+	<add name="keen1/008" tile_size="16" symmetry="1"/>
+	<add name="keen1/013" tile_size="16" symmetry="1"/>
+	<add name="keen1/014" tile_size="16" symmetry="1"/>
+	<add name="keen1/015" tile_size="16" symmetry="1"/>
+	<overlapping name="keen1/001" N="3" periodic="False" width="32" height="16" tile_size="16" screenshots="3" symmetry="2"/>
+	<add name="keen1/002" tile_size="8" symmetry="1"/>
+	<add name="keen1/003" tile_size="8" symmetry="1"/>
+	<add name="keen1/004" tile_size="8" symmetry="1"/>
+	<add name="keen1/005" tile_size="8" symmetry="1"/>
+	<add name="keen1/006" tile_size="8" symmetry="1"/>
+	<add name="keen1/007" tile_size="8" symmetry="1"/>
+		<overlapping name="keen1/001" N="3" periodic="False" width="32" height="16" tile_size="8" screenshots="1" symmetry="1"/>
 	<overlapping name="keen1/001" N="3" periodic="False" width="16" height="16" tile_size="16" screenshots="1" symmetry="1"/>
-	<overlapping name="mindustry/screenshot-1586016591537" N="3" periodic="False" width="16" height="16" tile_size="8" screenshots="1" symmetry="1"/>
 	<overlapping name="keen1/001" N="3" periodic="False" width="32" height="32" tile_size="16" screenshots="1" symmetry="1"/>
+	<overlapping name="keen1/001" N="3" periodic="False" width="16" height="16" tile_size="8" screenshots="1" symmetry="1"/>
+	<overlapping name="keen1/001" N="3" periodic="False" width="16" height="16" tile_size="4" screenshots="1" symmetry="1"/>
+	<overlapping name="keen1/001" N="5" periodic="False" width="12" height="12" tile_size="16" screenshots="1" symmetry="1"/>
 	<overlapping name="mindustry/screenshot-1586016591537" N="3" periodic="False" width="32" height="32" tile_size="8" screenshots="1" symmetry="1"/>
-
-	<overlapping name="keen1/001" N="4" periodic="False" width="6" height="6" tile_size="16" screenshots="1" symmetry="1"/>
-	<overlapping name="mindustry/screenshot-1586016591537" N="4" periodic="False" width="6" height="6" tile_size="8" screenshots="1" symmetry="1"/>
-	<overlapping name="keen1/001" N="2" periodic="False" width="6" height="6" tile_size="16" screenshots="1" symmetry="1"/>
 	<overlapping name="mindustry/screenshot-1586016591537" N="2" periodic="False" width="6" height="6" tile_size="8" screenshots="1" symmetry="1"/>
-	<overlapping name="keen1/001" N="3" periodic="False" width="6" height="6" tile_size="16" screenshots="1" symmetry="1"/>
+	<overlapping name="mindustry/screenshot-1586016591537" N="3" periodic="False" width="6" height="6" tile_size="8" screenshots="1" symmetry="1"/>
+	<overlapping name="mindustry/screenshot-1586016591537" N="3" periodic="False" width="6" height="6" tile_size="8" screenshots="2" symmetry="1"/>
+	<overlapping name="mindustry/screenshot-1586016591537" N="3" periodic="False" width="6" height="6" tile_size="4" screenshots="1" symmetry="1"/>
+	<overlapping name="mindustry/screenshot-1586016591537" N="3" periodic="False" width="16" height="16" tile_size="8" screenshots="1" symmetry="1"/>
+
+
+	<overlapping name="mindustry/screenshot-1586016591537" N="4" periodic="False" width="6" height="6" tile_size="8" screenshots="1" symmetry="1"/>
+	<overlapping name="mindustry/screenshot-1586016591537" N="2" periodic="False" width="6" height="6" tile_size="8" screenshots="1" symmetry="1"/>
 	<overlapping name="mindustry/screenshot-1586016591537" N="3" periodic="False" width="6" height="6" tile_size="8" screenshots="1" symmetry="1"/>
 </samples>

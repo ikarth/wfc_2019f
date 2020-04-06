@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from .wfc_patterns import pattern_grid_to_tiles
 
+import pdb
+import traceback
+
 ## Helper functions
 RGB_CHANNELS = 3
 def rgb_to_int(rgb_in):
@@ -281,7 +284,13 @@ def tile_grid_to_image(tile_grid, tile_catalog, tile_size, visualize=False, part
     in tile_catalog. We use tile_size to figure out the size the new image
     should be, and visualize for displaying partial tile patterns.
     """
-    new_img = np.zeros((tile_grid.shape[0] * tile_size[0], tile_grid.shape[1] * tile_size[1], color_channels), dtype=np.int64)
+    if isinstance(tile_size, int):
+        tile_size = (tile_size, tile_size)
+    try:
+        new_img = np.zeros((tile_grid.shape[0] * tile_size[0], tile_grid.shape[1] * tile_size[1], color_channels), dtype=np.int64)
+    except Exception as e:
+        traceback.print_exc()
+        pdb.set_trace()
     if partial and (len(tile_grid.shape)) > 2:
         # TODO: implement rendering partially completed solution
         # Call tile_grid_to_average() instead.
@@ -349,30 +358,71 @@ def render_pattern(render_pattern, tile_catalog, tile_size=1):
   return output
 
 def figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, pattern_width, output_filename="pattern_catalog", tile_size=1):
+    for i, tcode in pattern_catalog.items():
+        pat_cat = pattern_catalog[i]
+        try:
+            img = tile_grid_to_image(pat_cat, tile_catalog, tile_size)
+        except Exception as e:
+            traceback.print_exc()
+            pdb.set_trace()
+        imageio.imwrite(f"{output_filename}{i}.png", img.astype(np.uint8))
     s_columns = 24 // min(24, pattern_width)
     s_rows = 1 + (int(len(pattern_catalog)) // s_columns)
+    if s_rows > 256:
+        s_rows = 256
     fig = plt.figure(figsize=(s_columns, s_rows * 1.5))
     plt.title('Extracted Patterns')
     counter = 0
     for i, tcode in pattern_catalog.items():
-        pat_cat = pattern_catalog[i]
-        #print(pat_cat)
-        ptr = render_pattern(pat_cat, tile_catalog, 1).astype(np.uint8)
-        #ptr = tile_grid_to_image(ptr, tile_catalog, tile_size, visualize=True).astype(np.uint8)
-        sp = plt.subplot(s_rows, s_columns, counter + 1)
-        spi = sp.imshow(ptr)
-        spi.axes.xaxis.set_label_text(f'({pattern_weights[i]})')
-        sp.set_title(f"{counter}\n{i}", fontsize=3)
-        spi.axes.tick_params(labelleft=False,labelbottom=False, left=False, bottom=False)
-        spi.axes.grid(False)
-        counter += 1
-    plt.savefig(output_filename + "_patterns.pdf", bbox_inches="tight")
+        if counter < s_rows * s_columns:
+            pat_cat = pattern_catalog[i]
+            #print(pat_cat)
+            ptr = render_pattern(pat_cat, tile_catalog, 1).astype(np.uint8)
+            #ptr = tile_grid_to_image(ptr, tile_catalog, tile_size, visualize=True).astype(np.uint8)
+            sp = plt.subplot(s_rows, s_columns, counter + 1)
+            spi = sp.imshow(ptr)
+            spi.axes.xaxis.set_label_text(f'({pattern_weights[i]})')
+            sp.set_title(f"{counter}\n{i}", fontsize=3)
+            spi.axes.tick_params(labelleft=False,labelbottom=False, left=False, bottom=False)
+            spi.axes.grid(False)
+            counter += 1
+    try:
+        plt.savefig(output_filename + "_patterns.pdf", bbox_inches="tight")
+    except ValueError as e:
+        print(e)
     plt.close()
 
 
 def render_tiles_to_output(tile_grid, tile_catalog, tile_size, output_filename):
   img = tile_grid_to_image(tile_grid.T, tile_catalog, tile_size)
   imageio.imwrite(output_filename, img.astype(np.uint8))
+
+def figure_pattern_grid(pattern_grid_raw, pattern_list, output_filename):
+    tile_size = (1,1)
+    color_channels = 3
+    #pattern_list.sort()
+    pl_sorted = np.sort(pattern_list)
+    pl_convert = {pv: pi[0] for pi, pv in np.ndenumerate(pl_sorted)}
+    pattern_grid = np.vectorize(pl_convert.get)(pattern_grid_raw)
+
+    pattern_norm = matplotlib.colors.Normalize(np.min(pattern_grid), np.max(pattern_grid))
+    color_map = plt.get_cmap("plasma")
+    scalar_map = matplotlib.cm.ScalarMappable(norm=pattern_norm, cmap=color_map)
+
+    new_img = np.zeros((pattern_grid.shape[0] * tile_size[0], pattern_grid.shape[1] * tile_size[1], color_channels), dtype=np.int64)
+
+    for i in range(pattern_grid.shape[0]):
+        for j in range(pattern_grid.shape[1]):
+            tile = pattern_grid[i,j]
+            for u in range(tile_size[0]):
+                for v in range(tile_size[1]):
+                    pixel = [200, 0, 200]
+                    pixel = scalar_map.to_rgba(pattern_grid[i,j], alpha=None)
+                    pixel = np.vectorize(np.floor)(np.multiply(pixel, 255))[:3].astype(np.int64).tolist()
+                    # TODO: will need to change if using an image with more than 3 channels
+                    new_img[(i * tile_size[0]) + u, (j * tile_size[1]) + v] = np.resize(pixel, new_img[(i * tile_size[0]) + u, (j * tile_size[1]) + v].shape)
+    #pdb.set_trace()
+    imageio.imwrite(f"{output_filename}.png", new_img.astype(np.uint8))
 
 
 def blit(destination, sprite, upper_left, layer = False, check=False):
@@ -461,7 +511,10 @@ def figure_adjacencies(adjacency_relations_list, adjacency_directions, tile_cata
 
             spi.axes.add_artist(indicator_rect)
             spi.axes.grid(False)
-        plt.savefig(output_filename + "_adjacency.pdf", bbox_inches="tight")
+        try:
+            plt.savefig(output_filename + "_adjacency.pdf", bbox_inches="tight")
+        except ValueError as e:
+            print(e)
         plt.close()
 #    except ValueError as e:
 #        print(e)

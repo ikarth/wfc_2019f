@@ -2,15 +2,20 @@ from .wfc_tiles import make_tile_catalog
 from .wfc_patterns import make_pattern_catalog, pattern_grid_to_tiles, make_pattern_catalog_with_rotations
 from .wfc_adjacency import adjacency_extraction
 from .wfc_solver import run, makeWave, makeAdj, lexicalLocationHeuristic, lexicalPatternHeuristic, makeWeightedPatternHeuristic, Contradiction, StopEarly, makeEntropyLocationHeuristic, make_global_use_all_patterns, makeRandomLocationHeuristic, makeRandomPatternHeuristic, TimedOut, simpleLocationHeuristic, makeSpiralLocationHeuristic, makeHilbertLocationHeuristic, makeAntiEntropyLocationHeuristic
-from .wfc_visualize import figure_list_of_tiles, figure_false_color_tile_grid, figure_pattern_catalog, render_tiles_to_output, figure_adjacencies, visualize_solver, make_solver_visualizers, make_solver_loggers
+from .wfc_visualize import figure_list_of_tiles, figure_false_color_tile_grid, figure_pattern_catalog, render_tiles_to_output, figure_adjacencies, visualize_solver, make_solver_visualizers, make_solver_loggers, figure_pattern_grid
 import imageio
 import numpy as np
 import time
 import os
+import collections
 
 from pycallgraph import PyCallGraph
 from pycallgraph.output import GraphvizOutput
 import pprofile
+
+import pdb
+import traceback
+import sys
 
 def visualize_tiles(unique_tiles, tile_catalog, tile_grid):
     if False:
@@ -58,23 +63,39 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
     direction_offsets = list(enumerate([(0, -1), (1, 0), (0, 1), (-1, 0)]))
 
     tile_catalog, tile_grid, code_list, unique_tiles = make_tile_catalog(img, tile_size)
+    tile_grids = [tile_grid]
     pattern_catalog, pattern_weights, pattern_list, pattern_grid = make_pattern_catalog_with_rotations(tile_grid, pattern_width, input_is_periodic=input_periodic, rotations=rotations)
+    pattern_grids = [pattern_grid]
+    unique_tiles_counter = collections.Counter()
+    for idx, val in enumerate(list(unique_tiles[0])):
+        unique_tiles_counter[val] = unique_tiles[1][idx]
+    for input_image in additional_training_images:
+        print(input_image)
+        inimg = imageio.imread(input_folder + input_image["name"] + ".png")
+        inimg = inimg[:,:,:3] # TODO: handle alpha channels
+        tcat, tgrid, clist, utiles = make_tile_catalog(inimg, tile_size)
+        try:
+            pcatalog, pweights, plist, pgrid = make_pattern_catalog_with_rotations(tgrid, pattern_width, input_is_periodic=input_image["periodic_input"], rotations=input_image["symmetry"])
+            tile_catalog = {**tile_catalog, **tcat}
+            tile_grids.append(tgrid)
+            pattern_catalog = {**pattern_catalog, **pcatalog}
+            pattern_list = np.unique(np.concatenate((pattern_list, plist)))
+            pattern_grids.append(pgrid)
+            utiles_counter = collections.Counter()
+            for idx, val in enumerate(list(utiles[0])):
+                utiles_counter[val] = utiles[1][idx]
+            unique_tiles_counter = unique_tiles_counter + utiles_counter
+            pattern_weights = pattern_weights + pweights
+        except Exception as e:
+            print(e)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            #traceback.print_tb(exc_traceback)
+            #traceback.print_exception(exc_type, exc_value, exc_traceback, limit=2)
+            traceback.print_exc()
+            pdb.set_trace()
 
-    # for input_image in additional_training_images:
-    #     print(input_image)
-    #     inimg = imageio.imread(input_folder + input_image["name"] + ".png")
-    #     inimg = inimg[:,:,:3] # TODO: handle alpha channels
-    #     tcat, tgrid, clist, utiles = make_tile_catalog(inimg, tile_size)
-    #     pcatalog, pweights, plist, pgrid = make_pattern_catalog_with_rotations(tgrid, pattern_width, input_is_periodic=input_image["periodic_input"], rotations=input_image["symmetry"])
-    #     tile_catalog.extend(tcat)
-    #     #tile_grid.extend(tgrid)
-    #     #code_list.extend(clist)
-    #     #unique_tiles.extend(utiles)
-    #     pattern_catalog.extend(pcatalog)
-    #     pattern_weights.extend(pweights)
-    #     pattern_list.extend(plist)
-    #     #pattern_grid.extend(pgrid)
-    #     #unique_tiles = set(unique_tiles)
+    unique_tiles = (np.array(unique_tiles_counter.keys), np.array(unique_tiles_counter.values))
+
 
     print("pattern catalog")
 
@@ -83,8 +104,13 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
     #figure_list_of_tiles(unique_tiles, tile_catalog, output_filename=f"visualization/tilelist_{filename}_{timecode}")
     #figure_false_color_tile_grid(tile_grid, output_filename=f"visualization/tile_falsecolor_{filename}_{timecode}")
     filename_no_slash = filename.replace("/", "_")
-    if visualize:
-        figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, pattern_width, output_filename=f"visualization/pattern_catalog_{filename_no_slash}_{timecode}", tile_size=tile_size)
+    if True: #if visualize:
+        os.makedirs(f"visualization/pattern_catalog/{filename_no_slash}/{timecode}/", exist_ok=True)
+        #figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, pattern_width, output_filename=f"visualization/pattern_catalog/{filename_no_slash}/{timecode}/", tile_size=tile_size)
+        for pidx, ppg in enumerate(pattern_grids):
+            figure_pattern_grid(ppg, pattern_list, output_filename=f"visualization/pattern_catalog/{filename_no_slash}/{timecode}/pgrid_{pidx}")
+            pgrid_to_tiles = pattern_grid_to_tiles(ppg, pattern_catalog)
+            render_tiles_to_output(pgrid_to_tiles, tile_catalog, [tile_size, tile_size], f"visualization/pattern_catalog/{filename_no_slash}/{timecode}/input_pcheck_{pidx}.png")
 
     print("profiling adjacency relations")
     adjacency_relations = None
@@ -99,7 +125,7 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
 
     print("adjacency_relations")
 
-    if visualize:
+    if True:#if visualize:
         figure_adjacencies(adjacency_relations, direction_offsets, tile_catalog, pattern_catalog, pattern_width, [tile_size, tile_size], output_filename=f"visualization/adjacency_{filename_no_slash}_{timecode}_A")
         #figure_adjacencies(adjacency_relations, direction_offsets, tile_catalog, pattern_catalog, pattern_width, [tile_size, tile_size], output_filename=f"visualization/adjacency_{filename}_{timecode}_B", render_b_first=True)
 

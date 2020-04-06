@@ -10,7 +10,7 @@ def image_to_tiles(img, tile_size):
     for input_dim in [0, 1]:
         padding_argument[input_dim] = (0, (tile_size - img.shape[input_dim]) % tile_size)
     img = np.pad(img, padding_argument, mode='constant')
-    tiles = img.reshape((img.shape[0]//tile_size, 
+    tiles = img.reshape((img.shape[0]//tile_size,
                        tile_size,
                        img.shape[1]//tile_size,
                        tile_size,
@@ -33,7 +33,7 @@ def make_tile_catalog(image_data, tile_size):
     code_list = np.array(hash_downto(tiles, 2), dtype=np.int64).reshape((tiles.shape[0] * tiles.shape[1]))
     tile_grid = np.array(hash_downto(tiles, 2), dtype=np.int64)
     unique_tiles = np.unique(tile_grid, return_counts=True)
-    
+
     tile_catalog = {}
     for i, j in enumerate(code_list):
         tile_catalog[j] = tile_list[i]
@@ -41,7 +41,7 @@ def make_tile_catalog(image_data, tile_size):
 
 def tiles_to_images(tile_grid, tile_catalog):
     return
-    
+
 # tests
 import imageio
 
@@ -52,7 +52,7 @@ def test_image_to_tiles():
     tiles = image_to_tiles(img, 1)
     assert(tiles[2][2][0][0][0] == 255)
     assert(tiles[2][2][0][0][1] == 0)
-    
+
 def test_make_tile_catalog():
     filename = "../images/samples/Red Maze.png"
     img = imageio.imread(filename)

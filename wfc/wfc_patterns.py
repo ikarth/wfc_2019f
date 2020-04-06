@@ -3,6 +3,8 @@ from .wfc_utilities import hash_downto
 from collections import Counter
 import numpy as np
 
+import pdb
+
 def unique_patterns_2d(agrid, ksize, periodic_input):
     assert ksize >= 1
     if periodic_input:
@@ -10,7 +12,9 @@ def unique_patterns_2d(agrid, ksize, periodic_input):
     else:
         # TODO: implement non-wrapped image handling
         #a = np.pad(a, ((0,k-1),(0,k-1),*(((0,0),)*(len(a.shape)-2))), mode='constant', constant_values=None)
-        agrid = np.pad(agrid, ((0, ksize - 1), (0, ksize - 1), *(((0, 0), )*(len(agrid.shape) - 2))), mode='wrap')
+        #agrid = np.pad(agrid, ((0, ksize - 1), (0, ksize - 1), *(((0, 0), )*(len(agrid.shape) - 2))), mode='constant', constant_values=-1)
+        #test_agrid = np.pad(agrid, ((0, ksize - 1), (0, ksize - 1), *(((0, 0), )*(len(agrid.shape) - 2))), mode='wrap')
+        pass
 
     patches = np.lib.stride_tricks.as_strided(
         agrid,
@@ -22,6 +26,9 @@ def unique_patterns_2d(agrid, ksize, periodic_input):
     locs = np.unravel_index(ui, patch_codes.shape)
     up = patches[locs[0], locs[1]]
     ids = np.vectorize({code: ind for ind, code in enumerate(uc)}.get)(patch_codes)
+    #new_up = up[np.where([not np.any(i == -1) for i in up])]
+    #ids = np.vectorize({code: ind for ind, code in enumerate(uc)}.get)(patch_codes)
+    #pdb.set_trace()
     return ids, up, patch_codes
 
 def unique_patterns_brute_force(grid, size, periodic_input):
