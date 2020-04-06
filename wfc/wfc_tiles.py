@@ -2,6 +2,8 @@
 import numpy as np
 from .wfc_utilities import hash_downto
 
+import pdb
+
 def image_to_tiles(img, tile_size):
     """
     Takes an images, divides it into tiles, return an array of tiles.
@@ -15,7 +17,7 @@ def image_to_tiles(img, tile_size):
                        img.shape[1]//tile_size,
                        tile_size,
                        img.shape[2]
-                      )).swapaxes(1, 2)
+                      )).swapaxes(1, 2).swapaxes(0, 1)
     return tiles
 
 

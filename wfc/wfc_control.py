@@ -58,7 +58,6 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
     img = imageio.imread(input_folder + filename + ".png")
     img = img[:,:,:3] # TODO: handle alpha channels
 
-
     # TODO: generalize this to more than the four cardinal directions
     direction_offsets = list(enumerate([(0, -1), (1, 0), (0, 1), (-1, 0)]))
 
@@ -105,12 +104,17 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
     #figure_false_color_tile_grid(tile_grid, output_filename=f"visualization/tile_falsecolor_{filename}_{timecode}")
     filename_no_slash = filename.replace("/", "_")
     if True: #if visualize:
-        os.makedirs(f"visualization/pattern_catalog/{filename_no_slash}/{timecode}/", exist_ok=True)
-        #figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, pattern_width, output_filename=f"visualization/pattern_catalog/{filename_no_slash}/{timecode}/", tile_size=tile_size)
+        os.makedirs(f"visualization/patterns/{filename_no_slash}/{timecode}/tile_catalog/", exist_ok=True)
+        imageio.imwrite(f"visualization/patterns/{filename_no_slash}/{timecode}/input_image.png", img.astype(np.uint8))
+        for tidx, tg in enumerate(tile_grids):
+            render_tiles_to_output(tg, tile_catalog, [tile_size, tile_size], f"visualization/patterns/{filename_no_slash}/{timecode}/input_tcheck_{tidx}.png")
+
+        os.makedirs(f"visualization/patterns/{filename_no_slash}/{timecode}/pattern_catalog/", exist_ok=True)
+        figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, pattern_width, output_filename=f"visualization/patterns/{filename_no_slash}/{timecode}/pattern_catalog/", tile_size=tile_size)
         for pidx, ppg in enumerate(pattern_grids):
-            figure_pattern_grid(ppg, pattern_list, output_filename=f"visualization/pattern_catalog/{filename_no_slash}/{timecode}/pgrid_{pidx}")
+            figure_pattern_grid(ppg, pattern_list, output_filename=f"visualization/patterns/{filename_no_slash}/{timecode}/pgrid_{pidx}")
             pgrid_to_tiles = pattern_grid_to_tiles(ppg, pattern_catalog)
-            render_tiles_to_output(pgrid_to_tiles, tile_catalog, [tile_size, tile_size], f"visualization/pattern_catalog/{filename_no_slash}/{timecode}/input_pcheck_{pidx}.png")
+            render_tiles_to_output(pgrid_to_tiles, tile_catalog, [tile_size, tile_size], f"visualization/patterns/{filename_no_slash}/{timecode}/input_pcheck_{pidx}.png")
 
     print("profiling adjacency relations")
     adjacency_relations = None
@@ -126,7 +130,7 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
     print("adjacency_relations")
 
     if True:#if visualize:
-        figure_adjacencies(adjacency_relations, direction_offsets, tile_catalog, pattern_catalog, pattern_width, [tile_size, tile_size], output_filename=f"visualization/adjacency_{filename_no_slash}_{timecode}_A")
+        figure_adjacencies(adjacency_relations, direction_offsets, tile_catalog, pattern_catalog, pattern_width, [tile_size, tile_size], output_filename=f"visualization/patterns/{filename_no_slash}/{timecode}/adjacency_{filename_no_slash}_{timecode}")
         #figure_adjacencies(adjacency_relations, direction_offsets, tile_catalog, pattern_catalog, pattern_width, [tile_size, tile_size], output_filename=f"visualization/adjacency_{filename}_{timecode}_B", render_b_first=True)
 
     print(f"output size: {output_size}\noutput periodic: {output_periodic}")

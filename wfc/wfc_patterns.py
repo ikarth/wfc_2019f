@@ -51,6 +51,7 @@ def unique_patterns_brute_force(grid, size, periodic_input):
 def make_pattern_catalog(tile_grid, pattern_width, input_is_periodic=True):
     """Returns a pattern catalog (dictionary of pattern hashes to consituent tiles),
 an ordered list of pattern weights, and an ordered list of pattern contents."""
+    #pdb.set_trace()
     patterns_in_grid, pattern_contents_list, patch_codes = unique_patterns_2d(tile_grid, pattern_width, input_is_periodic)
     dict_of_pattern_contents = {}
     for pat_idx in range(pattern_contents_list.shape[0]):
@@ -73,7 +74,7 @@ def rotate_grid(grid):
     return np.rot90(grid, axes=(1,0))
 
 def make_pattern_catalog_with_rotations(tile_grid, pattern_width, rotations=7, input_is_periodic=True):
-    rotated_tile_grid = tile_grid.copy()
+    rotated_tile_grid = tile_grid.copy().swapaxes(0,1)
     merged_dict_of_pattern_contents = {}
     merged_pattern_frequency = Counter()
     merged_pattern_contents_list = None
@@ -104,7 +105,7 @@ def make_pattern_catalog_with_rotations(tile_grid, pattern_width, rotations=7, i
         _make_catalog()
         counter += 1
 
-
+    #pdb.set_trace()
     #assert False
     return merged_dict_of_pattern_contents, merged_pattern_frequency, merged_pattern_contents_list, merged_patch_codes
 

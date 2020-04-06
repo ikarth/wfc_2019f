@@ -411,8 +411,8 @@ def figure_pattern_grid(pattern_grid_raw, pattern_list, output_filename):
 
     new_img = np.zeros((pattern_grid.shape[0] * tile_size[0], pattern_grid.shape[1] * tile_size[1], color_channels), dtype=np.int64)
 
-    for i in range(pattern_grid.shape[0]):
-        for j in range(pattern_grid.shape[1]):
+    for j in range(pattern_grid.shape[1]):
+        for i in range(pattern_grid.shape[0]):
             tile = pattern_grid[i,j]
             for u in range(tile_size[0]):
                 for v in range(tile_size[1]):
