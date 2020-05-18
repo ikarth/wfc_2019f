@@ -312,7 +312,15 @@ def tile_grid_to_image(tile_grid, tile_catalog, tile_size, visualize=False, part
                             if (-2 == tile):
                                 pixel = [0, 255, 255]
                         else:
-                            pixel = tile_catalog[tile][u,v]
+                            try:
+                                pixel = tile_catalog[tile][u,v]
+                            except KeyError as e:
+                                if -1 == tile:
+                                    if 0 == (i + j) % 2:
+                                        pixel = [255, 0, 255]
+                                else:
+                                    raise e
+
                         # TODO: will need to change if using an image with more than 3 channels
                         new_img[(i * tile_size[0]) + u, (j * tile_size[1]) + v] = np.resize(pixel, new_img[(i * tile_size[0]) + u, (j * tile_size[1]) + v].shape)
     return new_img

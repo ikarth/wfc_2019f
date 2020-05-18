@@ -8,13 +8,12 @@ import pdb
 def unique_patterns_2d(agrid, ksize, periodic_input):
     assert ksize >= 1
     if periodic_input:
-        agrid = np.pad(agrid, ((0, ksize - 1), (0, ksize - 1), *(((0, 0), )*(len(agrid.shape) - 2))), mode='wrap')
+        agrid = np.pad(agrid.T, ((0, ksize - 1), (0, ksize - 1), *(((0, 0), )*(len(agrid.shape) - 2))), mode='wrap')
     else:
         # TODO: implement non-wrapped image handling
         #a = np.pad(a, ((0,k-1),(0,k-1),*(((0,0),)*(len(a.shape)-2))), mode='constant', constant_values=None)
-        #agrid = np.pad(agrid, ((0, ksize - 1), (0, ksize - 1), *(((0, 0), )*(len(agrid.shape) - 2))), mode='constant', constant_values=-1)
+        agrid = np.pad(agrid.T, ((ksize - 1, ksize - 1), (ksize - 1, ksize - 1), *(((0, 0), )*(len(agrid.shape) - 2))), mode='constant', constant_values=-1)
         #test_agrid = np.pad(agrid, ((0, ksize - 1), (0, ksize - 1), *(((0, 0), )*(len(agrid.shape) - 2))), mode='wrap')
-        pass
 
     patches = np.lib.stride_tricks.as_strided(
         agrid,
@@ -28,7 +27,6 @@ def unique_patterns_2d(agrid, ksize, periodic_input):
     ids = np.vectorize({code: ind for ind, code in enumerate(uc)}.get)(patch_codes)
     #new_up = up[np.where([not np.any(i == -1) for i in up])]
     #ids = np.vectorize({code: ind for ind, code in enumerate(uc)}.get)(patch_codes)
-    #pdb.set_trace()
     return ids, up, patch_codes
 
 def unique_patterns_brute_force(grid, size, periodic_input):
@@ -58,7 +56,10 @@ an ordered list of pattern weights, and an ordered list of pattern contents."""
         p_hash = hash_downto(pattern_contents_list[pat_idx], 0)
         dict_of_pattern_contents.update({np.asscalar(p_hash) : pattern_contents_list[pat_idx]})
     pattern_frequency = Counter(hash_downto(pattern_contents_list, 1))
-    return dict_of_pattern_contents, pattern_frequency, hash_downto(pattern_contents_list, 1), patch_codes
+    edge_patterns_mask = {k: False for k,v in dict_of_pattern_contents.items()}
+    if input_is_periodic:
+        edge_patterns_mask = {k: np.any(np.isin(v.flatten(), -1)) for k,v in dict_of_pattern_contents.items()}
+    return dict_of_pattern_contents, pattern_frequency, hash_downto(pattern_contents_list, 1), patch_codes, edge_patterns_mask
 
 def identity_grid(grid):
     "do nothing to the grid"
@@ -73,16 +74,22 @@ def rotate_grid(grid):
     "rotate the grid"
     return np.rot90(grid, axes=(1,0))
 
-def make_pattern_catalog_with_rotations(tile_grid, pattern_width, rotations=7, input_is_periodic=True):
-    rotated_tile_grid = tile_grid.copy().swapaxes(0,1)
+def make_pattern_catalog_with_rotations(tile_grid, pattern_width, rotations=7, input_is_periodic=True, display_tiles_func=None):
+    if display_tiles_func != None:
+        display_tiles_func(tile_grid, "start")
+    rotated_tile_grid = tile_grid.copy()
+    if display_tiles_func != None:
+        display_tiles_func(rotated_tile_grid, "first")
     merged_dict_of_pattern_contents = {}
     merged_pattern_frequency = Counter()
     merged_pattern_contents_list = None
     merged_patch_codes = None
+    merged_edge_patterns_mask = {}
     def _make_catalog():
         nonlocal rotated_tile_grid, merged_dict_of_pattern_contents, merged_pattern_contents_list, merged_pattern_frequency, merged_patch_codes
-        dict_of_pattern_contents, pattern_frequency, pattern_contents_list, patch_codes = make_pattern_catalog(rotated_tile_grid, pattern_width, input_is_periodic)
+        dict_of_pattern_contents, pattern_frequency, pattern_contents_list, patch_codes, edge_patterns_mask = make_pattern_catalog(rotated_tile_grid, pattern_width, input_is_periodic)
         merged_dict_of_pattern_contents.update(dict_of_pattern_contents)
+        merged_edge_patterns_mask.update(edge_patterns_mask)
         merged_pattern_frequency.update(pattern_frequency)
         if merged_pattern_contents_list is None:
             merged_pattern_contents_list = pattern_contents_list.copy()
@@ -100,6 +107,8 @@ def make_pattern_catalog_with_rotations(tile_grid, pattern_width, rotations=7, i
         #print(counter)
         #print(grid_ops[counter].__name__)
         rotated_tile_grid = grid_ops[counter](rotated_tile_grid.copy())
+        if display_tiles_func != None:
+            display_tiles_func(rotated_tile_grid, f"reflection_{counter}")
         #print(rotated_tile_grid)
         #print("---")
         _make_catalog()
@@ -107,7 +116,9 @@ def make_pattern_catalog_with_rotations(tile_grid, pattern_width, rotations=7, i
 
     #pdb.set_trace()
     #assert False
-    return merged_dict_of_pattern_contents, merged_pattern_frequency, merged_pattern_contents_list, merged_patch_codes
+    if display_tiles_func != None:
+        display_tiles_func(rotated_tile_grid, "end")
+    return merged_dict_of_pattern_contents, merged_pattern_frequency, merged_pattern_contents_list, merged_patch_codes.T, merged_edge_patterns_mask
 
 def pattern_grid_to_tiles(pattern_grid, pattern_catalog):
     anchor_x = 0
@@ -122,6 +133,7 @@ def pattern_grid_to_tiles(pattern_grid, pattern_catalog):
         #     assert False
         #     return ptrns
         return pattern_catalog[pattern][anchor_x][anchor_y]
+    #pdb.set_trace()
     return np.vectorize(pattern_to_tile)(pattern_grid)
 
 

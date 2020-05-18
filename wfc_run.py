@@ -96,30 +96,26 @@ def run_default(run_experiment=False):
 
             for experiment in run_instructions:
                 try:
-                    for x in range(screenshots):
-                        print(f"-: {name} > {x}")
-                        solution = wfc_control.execute_wfc(name,
-                                                           tile_size=tile_size,
-                                                           pattern_width=pattern_width,
-                                                           rotations=symmetry,
-                                                           output_size=generated_size,
-                                                           ground=ground,
-                                                           attempt_limit=allowed_attempts,
-                                                           output_periodic=periodic_output,
-                                                           input_periodic=periodic_input,
-                                                           loc_heuristic=experiment["loc"],
-                                                           choice_heuristic=experiment["choice"],
-                                                           backtracking=experiment["backtracking"],
-                                                           global_constraint=experiment["global"],
-                                                           log_filename=log_filename,
-                                                           log_stats_to_output=log_stats_to_output,
-                                                           visualize=visualize_experiment,
-                                                           logging=False,
-                                                           additional_training_images=training_images)
-                        if solution is None:
-                            print(None)
-                        else:
-                            print(solution)
+                    print(f"-: {name}")
+                    solution = wfc_control.execute_wfc(name,
+                                                       tile_size=tile_size,
+                                                       pattern_width=pattern_width,
+                                                       rotations=symmetry,
+                                                       output_size=generated_size,
+                                                       ground=ground,
+                                                       attempt_limit=allowed_attempts,
+                                                       output_periodic=periodic_output,
+                                                       input_periodic=periodic_input,
+                                                       loc_heuristic=experiment["loc"],
+                                                       choice_heuristic=experiment["choice"],
+                                                       backtracking=experiment["backtracking"],
+                                                       global_constraint=experiment["global"],
+                                                       log_filename=log_filename,
+                                                       log_stats_to_output=log_stats_to_output,
+                                                       visualize=visualize_experiment,
+                                                       logging=False,
+                                                       additional_training_images=training_images,
+                                                       screenshots=screenshots)
                 except FileNotFoundError as e:
                     print(e)
 
