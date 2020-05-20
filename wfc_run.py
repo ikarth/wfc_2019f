@@ -13,7 +13,7 @@ def string2bool(strn):
 
 def run_default(run_experiment=False):
     log_filename = f"log_{time.time()}"
-    xdoc = ET.ElementTree(file="samples_keen.xml")
+    xdoc = ET.ElementTree(file="samples_lake.xml")
     default_allowed_attempts = 10
     default_backtracking = False
     log_stats_to_output = wfc_control.make_log_stats()
@@ -48,7 +48,7 @@ def run_default(run_experiment=False):
             iteration_limit = int(xnode.get('iteration_limit', 0)) # After this many iterations, time out. 0 = never time out.
             allowed_attempts = int(xnode.get('allowed_attempts', default_allowed_attempts)) # Give up after this many contradictions
             backtracking = string2bool(xnode.get('backtracking', default_backtracking))
-            visualize_experiment = False
+            visualize_experiment = True
 
             run_instructions = [{"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": None}]
             #run_instructions = [{"loc": "entropy", "choice": "weighted", "backtracking": True, "global": "allpatterns"}]
