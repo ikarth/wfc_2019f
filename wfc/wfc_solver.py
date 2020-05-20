@@ -340,7 +340,7 @@ def propagate(wave, adj, periodic=False, onPropagate=None):
       rolled_wave[d_index] = numpy.roll(padded, (-dx, -dy), (1,2))
     # trim off the padding
     rolled_wave_trim = rolled_wave[:, :, 1:-1, 1:-1]
-    new_wave = wave * numpy.all(((adj_matrix @ rolled_wave_trim.reshape(adjacency_count, pattern_count, -1)).reshape(rolled_wave_trim.shape) > 0), 0)
+    wave *= numpy.all(((adj_matrix @ rolled_wave_trim.reshape(adjacency_count, pattern_count, -1)).reshape(rolled_wave_trim.shape) > 0), 0)
 
     if wave.sum() == last_count:
       break
