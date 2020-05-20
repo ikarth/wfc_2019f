@@ -4,6 +4,10 @@ import sys
 import math
 import itertools
 
+import timeit
+import multiprocessing
+import pdb
+
 # By default Python has a very low recursion limit.
 # Might still be better to rewrite te recursion as a loop, of course
 sys.setrecursionlimit(5500)
@@ -35,7 +39,20 @@ def makeWave(n, w, h, ground=None, edge_patterns=None):
   #  print(wave[i])
   return wave
 
-def makeAdj(adjLists):
+def makeAdjMatrix(adjLists):
+  adjMatrices = [None] * len(adjLists)
+  print(adjMatrices)
+  num_patterns = len(list(adjLists.values())[0])
+  for d_index, d in enumerate(adjLists):
+    m = numpy.zeros((num_patterns,num_patterns),dtype=bool)
+    for i, js in enumerate(adjLists[d]):
+      #print(js)
+      for j in js:
+        m[i,j] = 1
+    adjMatrices[d_index] = sparse.csr_matrix(m)
+  return adjMatrices
+
+def makeAdjDict(adjLists):
   adjMatrices = {}
   #print(adjLists)
   num_patterns = len(list(adjLists.values())[0])
@@ -47,6 +64,9 @@ def makeAdj(adjLists):
         m[i,j] = 1
     adjMatrices[d] = sparse.csr_matrix(m)
   return adjMatrices
+
+def makeAdj(adjLists):
+  return makeAdjDict(adjLists)
 
 
 ######################################
@@ -240,31 +260,89 @@ def make_global_use_all_patterns():
 #####################################
 # Solver
 
+def propagate_matix(wave, adj, periodic=False, onPropagate=None):
+  last_count = wave.sum()
+  while True:
+    supports = numpy.array()
+
+  if onPropagate:
+    onPropagate(wave)
+  if wave.sum() == 0:
+    raise Contradiction
+
+
 def propagate(wave, adj, periodic=False, onPropagate=None):
   last_count = wave.sum()
 
-  while True:
-    supports = {}
-    if periodic:
-      padded = numpy.pad(wave,((0,0),(1,1),(1,1)), mode='wrap')
-    else:
-      padded = numpy.pad(wave,((0,0),(1,1),(1,1)), mode='constant',constant_values=True)
+  adjacency_count = len(adj)
+  pattern_count = wave.shape[0]
+  adj_matrix = [None] * len(adj)
+  for d_index, d in enumerate(adj):
+    print(d_index, d)
+    adj_matrix[d_index] = adj[d].toarray()
+  adj_matrix = numpy.array(adj_matrix)
 
-    for d in adj:
+  while True:
+    support_shape = (adjacency_count, ) + wave.shape
+    orig_wave = wave.copy()
+
+    # Pad the edges of the wave to handle wrapping and/or the edges
+    if periodic:
+      padded = numpy.pad(wave, ((0,0),(1,1),(1,1)), mode='wrap')
+    else:
+      padded = numpy.pad(wave, ((0,0),(1,1),(1,1)), mode='constant', constant_values=True)
+
+    padded = numpy.pad(wave, ((0,0),(1,1),(1,1)), mode='constant', constant_values=True)
+
+    # Build a stack of wave matrices, shifted by the offset
+    rolled_shape = (len(adj), ) + padded.shape
+    rolled_wave = numpy.full((rolled_shape), False, dtype=bool)
+    for d_index, direction in enumerate(adj):
+      dx,dy = direction
+      rolled_wave[d_index] = numpy.roll(padded, (-dx, -dy), (1,2))
+    # trim off the padding
+    rolled_wave_trim = rolled_wave[:, :, 1:-1, 1:-1]
+
+    for d_index, direction in enumerate(adj):
+      dx,dy = direction
+      shifted = padded[:, 1+dx:1+wave.shape[1]+dx, 1+dy:1+wave.shape[2]+dy]
+      try:
+        assert((rolled_wave_trim[d_index] == shifted).all())
+      except:
+        pdb.set_trace()
+
+    # multiply wave by the adjacency matrix for that adjacency in the stack
+    flattened_rolled_wave = rolled_wave_trim.reshape(adjacency_count, pattern_count, -1)
+    is_compatible_wave_adj = (adj_matrix @ flattened_rolled_wave).reshape(rolled_wave_trim.shape) > 0
+    is_compatible_wave = numpy.all(is_compatible_wave_adj, 0)
+
+    wave *= is_compatible_wave
+
+    # old way to do it
+    supports = {}
+
+    for d_index, d in enumerate(adj):
       dx,dy = d
-      shifted = padded[:,1+dx:1+wave.shape[1]+dx,1+dy:1+wave.shape[2]+dy]
-      #print(f"shifted: {shifted.shape} | adj[d]: {adj[d].shape} | d: {d}")
-      #raise StopEarly
-      #supports[d] = numpy.einsum('pwh,pq->qwh', shifted, adj[d]) > 0
+      shifted = padded[:, 1+dx:1+wave.shape[1]+dx, 1+dy:1+wave.shape[2]+dy]
       supports[d] = (adj[d] @ shifted.reshape(shifted.shape[0], -1)).reshape(shifted.shape) > 0
 
+    owave = orig_wave.copy()
     for d in adj:
-      wave *= supports[d]
+      owave *= supports[d]
+
+    #pdb.set_trace()
+    try:
+      assert((wave == owave).all())
+    except Exception as e:
+      print(e)
+      pdb.set_trace()
 
     if wave.sum() == last_count:
       break
     else:
       last_count = wave.sum()
+
+
 
   if onPropagate:
     onPropagate(wave)
