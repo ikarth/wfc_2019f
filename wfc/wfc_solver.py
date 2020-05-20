@@ -271,6 +271,48 @@ def propagate_matix(wave, adj, periodic=False, onPropagate=None):
     raise Contradiction
 
 
+def propagate_old(wave, adj, periodic=False, onPropagate=None):
+  last_count = wave.sum()
+
+  adjacency_count = len(adj)
+  pattern_count = wave.shape[0]
+  adj_matrix = [None] * len(adj)
+  for d_index, d in enumerate(adj):
+    adj_matrix[d_index] = adj[d].toarray()
+  adj_matrix = numpy.array(adj_matrix)
+
+  while True:
+    support_shape = (adjacency_count, ) + wave.shape
+
+    # Pad the edges of the wave to handle wrapping and/or the edges
+    if periodic:
+      padded = numpy.pad(wave, ((0,0),(1,1),(1,1)), mode='wrap')
+    else:
+      padded = numpy.pad(wave, ((0,0),(1,1),(1,1)), mode='constant', constant_values=True)
+
+    # old way to do it
+    supports = {}
+
+    for d_index, d in enumerate(adj):
+      dx,dy = d
+      shifted = padded[:, 1+dx:1+wave.shape[1]+dx, 1+dy:1+wave.shape[2]+dy]
+      supports[d] = (adj[d] @ shifted.reshape(shifted.shape[0], -1)).reshape(shifted.shape) > 0
+
+    #wave = orig_wave.copy()
+    for d in adj:
+      wave *= supports[d]
+
+    if wave.sum() == last_count:
+      break
+    else:
+      last_count = wave.sum()
+
+  if onPropagate:
+    onPropagate(wave)
+
+  if wave.sum() == 0:
+    raise Contradiction
+
 def propagate(wave, adj, periodic=False, onPropagate=None):
   last_count = wave.sum()
 
@@ -283,7 +325,6 @@ def propagate(wave, adj, periodic=False, onPropagate=None):
 
   while True:
     support_shape = (adjacency_count, ) + wave.shape
-    #orig_wave = wave.copy()
 
     # Pad the edges of the wave to handle wrapping and/or the edges
     if periodic:
@@ -299,54 +340,14 @@ def propagate(wave, adj, periodic=False, onPropagate=None):
       rolled_wave[d_index] = numpy.roll(padded, (-dx, -dy), (1,2))
     # trim off the padding
     rolled_wave_trim = rolled_wave[:, :, 1:-1, 1:-1]
-
-    for d_index, direction in enumerate(adj):
-      dx,dy = direction
-      shifted = padded[:, 1+dx:1+wave.shape[1]+dx, 1+dy:1+wave.shape[2]+dy]
-      try:
-        assert((rolled_wave_trim[d_index] == shifted).all())
-      except Exception as excp:
-        print(excp)
-        pdb.set_trace()
-
-    # multiply wave by the adjacency matrix for that adjacency in the stack
-
-    # flattened_rolled_wave = rolled_wave_trim.reshape(adjacency_count, pattern_count, -1)
-    # is_compatible_wave_adj = (adj_matrix @ flattened_rolled_wave).reshape(rolled_wave_trim.shape) > 0
-    # is_compatible_wave = numpy.all(is_compatible_wave_adj, 0)
-
-    #is_compatible_wave = numpy.all(((adj_matrix @ rolled_wave_trim.reshape(adjacency_count, pattern_count, -1)).reshape(rolled_wave_trim.shape) > 0), 0)
-
     new_wave = wave * numpy.all(((adj_matrix @ rolled_wave_trim.reshape(adjacency_count, pattern_count, -1)).reshape(rolled_wave_trim.shape) > 0), 0)
-
-    # old way to do it
-    supports = {}
-
-    for d_index, d in enumerate(adj):
-      dx,dy = d
-      shifted = padded[:, 1+dx:1+wave.shape[1]+dx, 1+dy:1+wave.shape[2]+dy]
-      supports[d] = (adj[d] @ shifted.reshape(shifted.shape[0], -1)).reshape(shifted.shape) > 0
-
-    #wave = orig_wave.copy()
-    for d in adj:
-      wave *= supports[d]
-
-    try:
-      assert((new_wave == wave).all())
-    except Exception as excp:
-      print(excp)
-      pdb.set_trace()
 
     if wave.sum() == last_count:
       break
     else:
       last_count = wave.sum()
-
-
-
   if onPropagate:
     onPropagate(wave)
-
   if wave.sum() == 0:
     raise Contradiction
 
