@@ -375,6 +375,74 @@ def propagate(wave, adj, periodic=False, onPropagate=None):
     raise Contradiction
 
 
+def propagate_by_matrix(wave, adj, periodic=False, onPropagate=None):
+  last_count = wave.sum()
+
+  adjacency_count = len(adj)
+  pattern_count = wave.shape[0]
+  adj_matrix = [None] * len(adj)
+  for d_index, d in enumerate(adj):
+    adj_matrix[d_index] = adj[d].toarray()
+  adj_matrix = numpy.array(adj_matrix)
+
+  while True:
+    support_shape = (adjacency_count, ) + wave.shape
+
+    # Pad the edges of the wave to handle wrapping and/or the edges
+    if periodic:
+      padded = numpy.pad(wave, ((0,0),(1,1),(1,1)), mode='wrap')
+    else:
+      padded = numpy.pad(wave, ((0,0),(1,1),(1,1)), mode='constant', constant_values=True)
+
+    # Build a stack of wave matrices, shifted by the offset
+    rolled_shape = (adjacency_count, ) + padded.shape
+    rolled_wave = numpy.full((rolled_shape), False, dtype=bool)
+    for d_index, direction in enumerate(adj):
+      dx,dy = direction
+      rolled_wave[d_index] = numpy.roll(padded, (-dx, -dy), (1,2))
+    # trim off the padding
+    rolled_wave_trim = rolled_wave[:, :, 1:-1, 1:-1]
+    wave_mask = numpy.all(((adj_matrix @ rolled_wave_trim.reshape(adjacency_count, pattern_count, -1)).reshape(rolled_wave_trim.shape) > 0), 0)
+    wave *= wave_mask
+    if wave.sum() == last_count:
+      break
+    else:
+      last_count = wave.sum()
+  if onPropagate:
+    onPropagate(wave)
+  if wave.sum() == 0:
+    raise Contradiction
+
+def propagate_original(wave, adj, periodic=False, onPropagate=None):
+  last_count = wave.sum()
+
+  while True:
+    supports = {}
+    if periodic:
+      padded = numpy.pad(wave,((0,0),(1,1),(1,1)), mode='wrap')
+    else:
+      padded = numpy.pad(wave,((0,0),(1,1),(1,1)), mode='constant',constant_values=True)
+
+    for d in adj:
+      dx,dy = d
+      shifted = padded[:,1+dx:1+wave.shape[1]+dx,1+dy:1+wave.shape[2]+dy]
+      supports[d] = (adj[d] @ shifted.reshape(shifted.shape[0], -1)).reshape(shifted.shape) > 0
+
+    for d in adj:
+      wave *= supports[d]
+
+    if wave.sum() == last_count:
+      break
+    else:
+      last_count = wave.sum()
+
+  if onPropagate:
+    onPropagate(wave)
+
+  if wave.sum() == 0:
+    raise Contradiction
+
+
 def observe(wave, locationHeuristic, patternHeuristic):
   i,j = locationHeuristic(wave)
   pattern = patternHeuristic(wave[:,i,j], wave)
