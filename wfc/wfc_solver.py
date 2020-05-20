@@ -260,121 +260,6 @@ def make_global_use_all_patterns():
 #####################################
 # Solver
 
-def propagate_old(wave, adj, periodic=False, onPropagate=None):
-  last_count = wave.sum()
-
-  adjacency_count = len(adj)
-  pattern_count = wave.shape[0]
-  # adj_matrix = [None] * len(adj)
-  # for d_index, d in enumerate(adj):
-  #   adj_matrix[d_index] = adj[d].toarray()
-  # adj_matrix = numpy.array(adj_matrix)
-
-  while True:
-    support_shape = (adjacency_count, ) + wave.shape
-
-    # Pad the edges of the wave to handle wrapping and/or the edges
-    if periodic:
-      padded = numpy.pad(wave, ((0,0),(1,1),(1,1)), mode='wrap')
-    else:
-      padded = numpy.pad(wave, ((0,0),(1,1),(1,1)), mode='constant', constant_values=True)
-
-    # old way to do it
-    supports = {}
-
-    for d_index, d in enumerate(adj):
-      dx,dy = d
-      shifted = padded[:, 1+dx:1+wave.shape[1]+dx, 1+dy:1+wave.shape[2]+dy]
-      supports[d] = (adj[d] @ shifted.reshape(shifted.shape[0], -1)).reshape(shifted.shape) > 0
-
-    for d in adj:
-      wave *= supports[d]
-
-    if wave.sum() == last_count:
-      break
-    else:
-      last_count = wave.sum()
-
-  if onPropagate:
-    onPropagate(wave)
-
-  if wave.sum() == 0:
-    raise Contradiction
-
-def calculate_wave_mask(process_pool, wave, adj_matrix, adjacency_count, pattern_count, periodic, adj):
-  support_shape = (adjacency_count, ) + wave.shape
-
-  # Pad the edges of the wave to handle wrapping and/or the edges
-  if periodic:
-    padded = numpy.pad(wave, ((0,0),(1,1),(1,1)), mode='wrap')
-  else:
-    padded = numpy.pad(wave, ((0,0),(1,1),(1,1)), mode='constant', constant_values=True)
-
-  # Build a stack of wave matrices, shifted by the offset
-  rolled_shape = (adjacency_count, ) + padded.shape
-  rolled_wave = numpy.full((rolled_shape), False, dtype=bool)
-  for d_index, direction in enumerate(adj):
-    dx,dy = direction
-    rolled_wave[d_index] = numpy.roll(padded, (-dx, -dy), (1,2))
-  # trim off the padding
-  rolled_wave_trim = rolled_wave[:, :, 1:-1, 1:-1]
-  wave_mask = numpy.all(((adj_matrix @ rolled_wave_trim.reshape(adjacency_count, pattern_count, -1)).reshape(rolled_wave_trim.shape) > 0), 0)
-  return wave_mask
-
-def calculate_wave_mask_sliced(process_pool, wave, adj_matrix, adjacency_count, pattern_count, periodic, adj):
-  support_shape = (adjacency_count, ) + wave.shape
-
-  # Pad the edges of the wave to handle wrapping and/or the edges
-  if periodic:
-    padded = numpy.pad(wave, ((0,0),(1,1),(1,1)), mode='wrap')
-  else:
-    padded = numpy.pad(wave, ((0,0),(1,1),(1,1)), mode='constant', constant_values=True)
-
-  # Build a stack of wave matrices, shifted by the offset
-  rolled_shape = (adjacency_count, ) + padded.shape
-  rolled_wave = numpy.full((rolled_shape), False, dtype=bool)
-  for d_index, direction in enumerate(adj):
-    dx,dy = direction
-    rolled_wave[d_index] = numpy.roll(padded, (-dx, -dy), (1,2))
-  # trim off the padding
-  rolled_wave_trim = rolled_wave[:, :, 1:-1, 1:-1]
-
-  rwt_slices = [None] * (rolled_wave_trim.shape[0] * rolled_wave_trim.shape[1]) #shape = rolled_wave_trim.shape[1:]
-  for n_slice in range(rolled_wave_trim.shape[0]):
-    for x_slice in range(rolled_wave_trim.shape[1]):
-      rwt_slices[(n_slice * (rolled_wave_trim.shape[1])) + x_slice] = rolled_wave_trim[n_slice].flatten()
-
-  pdb.set_trace()
-
-
-  wave_mask = numpy.all(((adj_matrix @ rolled_wave_trim.reshape(adjacency_count, pattern_count, -1)).reshape(rolled_wave_trim.shape) > 0), 0)
-  return wave_mask
-
-def propagate(wave, adj, periodic=False, onPropagate=None):
-  last_count = wave.sum()
-
-  adjacency_count = len(adj)
-  pattern_count = wave.shape[0]
-  adj_matrix = [None] * len(adj)
-  for d_index, d in enumerate(adj):
-    adj_matrix[d_index] = adj[d].toarray()
-  adj_matrix = numpy.array(adj_matrix)
-
-  process_pool = None # multiprocessing.Pool(8)
-
-  while True:
-    wave_mask = calculate_wave_mask(process_pool, wave, adj_matrix, adjacency_count, pattern_count, periodic, adj)
-    wave *= wave_mask
-    if wave.sum() == last_count:
-      break
-    else:
-      last_count = wave.sum()
-  if onPropagate:
-    onPropagate(wave)
-  if wave.sum() == 0:
-    raise Contradiction
-
-
 def propagate_by_matrix(wave, adj, periodic=False, onPropagate=None):
   last_count = wave.sum()
 
@@ -492,7 +377,7 @@ def run(wave, adj, locationHeuristic, patternHeuristic, periodic=False, backtrac
   if depth % 50 == 0:
     print(depth)
   original = wave.copy()
-  propagate_old(wave, adj, periodic=periodic, onPropagate=onPropagate)
+  propagate_original(wave, adj, periodic=periodic, onPropagate=onPropagate)
   try:
     pattern, i, j = observe(wave, locationHeuristic, patternHeuristic)
     if onChoice:
@@ -501,7 +386,7 @@ def run(wave, adj, locationHeuristic, patternHeuristic, periodic=False, backtrac
     wave[pattern, i, j] = True
     if onObserve:
       onObserve(wave)
-    propagate_old(wave, adj, periodic=periodic, onPropagate=onPropagate)
+    propagate_original(wave, adj, periodic=periodic, onPropagate=onPropagate)
     if wave.sum() > wave.shape[1] * wave.shape[2]:
       #return run(wave, adj, locationHeuristic, patternHeuristic, periodic, backtracking, onBacktrack)
       return run(wave, adj, locationHeuristic, patternHeuristic, periodic=periodic, backtracking=backtracking, onBacktrack=onBacktrack, onChoice=onChoice, onObserve=onObserve, onPropagate=onPropagate, checkFeasible=checkFeasible, depth=depth+1, depth_limit=depth_limit)
