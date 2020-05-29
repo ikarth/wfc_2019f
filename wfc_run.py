@@ -116,7 +116,7 @@ def run_default(run_experiment=False):
                                                        visualize=visualize_experiment,
                                                        logging=True,
                                                        save_precache=True,
-                                                       execute_solver=False
+                                                       execute_solver=True
                     )
                     if solution is None:
                         print(None)

@@ -226,11 +226,15 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
       with open(f"precache/{filename}/{timecode}/commands.xml", 'w') as f:
         f.write(f'\t<precache name="{filename}" shapes="precache/{filename}/{timecode}/shapes.json" directions="precache/{filename}/{timecode}/directions.npy" wave="precache/{filename}/{timecode}/wave.npy" adjacency="precache/{filename}/{timecode}/adjacency.npy" tile_size="{tile_size}" N="{pattern_width}" symmetry="{rotations}" width="{output_size[0]}" height="{output_size[1]}" screenshots="1", iteration_limit="0" allowed_attempts="{attempt_limit}" backtracking="{backtracking}" ground="{ground}", periodic="{input_periodic}", choice_heuristic="{choice_heuristic}" loc_heuristic="{loc_heuristic}" global_constraint="{global_constraint}">')
 
-    ### Solving ###
-
     if(not execute_solver):
       # We only wanted the precache, so don't run the actual solver
       return precache
+
+    # actually run the solver
+    return run_wfc_solver(filename, wave, adjacency_matrix, location_heuristic, pattern_heuristic, output_periodic, backtracking, visualize_choice, visualize_backtracking, visualize_wave, visualize_propagate, visualize_final, visualize_after, combinedConstraints, pattern_catalog, tile_catalog, tile_size, output_destination, timecode, log_stats_to_output)
+
+def run_wfc_solver(filename, wave, adjacency_matrix, location_heuristic, pattern_heuristic, output_periodic, backtracking, visualize_choice, visualize_backtracking, visualize_wave, visualize_propagate, visualize_final, visualize_after, combinedConstraints, pattern_catalog, tile_catalog, tile_size, output_destination, timecode, log_stats_to_output):
+    ### Solving ###
 
     time_solve_start = None
     time_solve_end = None
