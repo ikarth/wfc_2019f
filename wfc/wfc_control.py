@@ -7,10 +7,13 @@ import imageio
 import numpy as np
 import time
 import os
+import pathlib
+import json
 
 from pycallgraph import PyCallGraph
 from pycallgraph.output import GraphvizOutput
 import pprofile
+import pdb
 
 def visualize_tiles(unique_tiles, tile_catalog, tile_grid):
     if False:
@@ -39,7 +42,7 @@ def make_log_stats():
     return log_stats
 
 
-def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size=[48,48], ground=None, attempt_limit=10, output_periodic=True, input_periodic=True, loc_heuristic="lexical", choice_heuristic="lexical", visualize=True, global_constraint=False, backtracking=False, log_filename="log", logging=True, global_constraints=None, log_stats_to_output=None):
+def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size=[48,48], ground=None, attempt_limit=10, output_periodic=True, input_periodic=True, loc_heuristic="lexical", choice_heuristic="lexical", visualize=True, global_constraint=False, backtracking=False, log_filename="log", logging=True, global_constraints=None, log_stats_to_output=None, save_precache=False, execute_solver=True):
     timecode = f"{time.time()}"
     time_begin = time.time()
     output_destination = r"./output/"
@@ -191,10 +194,43 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
 
     combined_constraints = [active_global_constraint, makeSearchLengthLimit(1200)]
     def combinedConstraints(wave):
-        print
         return all([fn(wave) for fn in combined_constraints])
 
+    ### Save Precache ###
+
+    precache = {}
+
+    if save_precache:
+      pathlib.Path(f"precache/{filename}/{timecode}/").mkdir(parents=True, exist_ok=True)
+
+      print(wave)
+      print(adjacency_matrix[(0, -1)].todense())
+      print()
+      precache["wave_shape"] = np.asarray(wave).shape
+
+      precache["wave"] = np.asarray(wave)
+
+      np.save(f"precache/{filename}/{timecode}/wave.npy", precache["wave"])
+
+      precache["directions"] = []
+      precache["adjacencies"] = []
+      for k,v in adjacency_matrix.items():
+         precache["directions"].append(k)
+         precache["adjacencies"].append(v.A)
+      np.save(f"precache/{filename}/{timecode}/directions.npy", np.array(precache["directions"]))
+      precache["adjacency_shape"] = [len(precache["directions"]), *precache["adjacencies"][0].shape]
+      adj_matrix = np.concatenate(precache["adjacencies"], axis=0)
+      np.save(f"precache/{filename}/{timecode}/adjacency.npy", adj_matrix)
+      with open(f"precache/{filename}/{timecode}/shapes.json", 'w') as f:
+        json.dump({"wave_shape": list(precache["wave_shape"]), "adjacency_shape": list(precache["adjacency_shape"])}, f)
+      with open(f"precache/{filename}/{timecode}/commands.xml", 'w') as f:
+        f.write(f'\t<precache name="{filename}" shapes="precache/{filename}/{timecode}/shapes.json" directions="precache/{filename}/{timecode}/directions.npy" wave="precache/{filename}/{timecode}/wave.npy" adjacency="precache/{filename}/{timecode}/adjacency.npy" tile_size="{tile_size}" N="{pattern_width}" symmetry="{rotations}" width="{output_size[0]}" height="{output_size[1]}" screenshots="1", iteration_limit="0" allowed_attempts="{attempt_limit}" backtracking="{backtracking}" ground="{ground}", periodic="{input_periodic}", choice_heuristic="{choice_heuristic}" loc_heuristic="{loc_heuristic}" global_constraint="{global_constraint}">')
+
     ### Solving ###
+
+    if(not execute_solver):
+      # We only wanted the precache, so don't run the actual solver
+      return precache
 
     time_solve_start = None
     time_solve_end = None

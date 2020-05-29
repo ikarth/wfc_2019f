@@ -103,37 +103,37 @@ def fill_with_curve(arr, curve_gen):
     for idx, coord in enumerate(curve_gen):
       #print(fill, idx, coord)
       if fill < arr_len:
-        try: 
+        try:
           arr[coord[0], coord[1]] = fill / arr_len
           fill += 1
         except IndexError:
           pass
-      else:  
+      else:
         break
     #print(arr)
     return arr
 
-    
+
 
 def makeSpiralLocationHeuristic(preferences):
   # https://stackoverflow.com/a/23707273/5562922
-  
+
   spiral_gen = (sc for sc in spiral_coords(preferences.shape[0] // 2, preferences.shape[1] // 2))
-  
+
   cell_order = fill_with_curve(preferences, spiral_gen)
-    
+
   def spiralLocationHeuristic(wave):
     unresolved_cell_mask = (numpy.count_nonzero(wave, axis=0) > 1)
     cell_weights = numpy.where(unresolved_cell_mask, cell_order, numpy.inf)
     row, col = numpy.unravel_index(numpy.argmin(cell_weights), cell_weights.shape)
     return [row, col]
-  
+
   return spiralLocationHeuristic
 
 from hilbertcurve.hilbertcurve import HilbertCurve
 
 def makeHilbertLocationHeuristic(preferences):
-  curve_size = math.ceil( math.sqrt(max(preferences.shape[0], preferences.shape[1]))) 
+  curve_size = math.ceil( math.sqrt(max(preferences.shape[0], preferences.shape[1])))
   print(curve_size)
   curve_size = 4
   h_curve = HilbertCurve(curve_size, 2)
@@ -147,10 +147,10 @@ def makeHilbertLocationHeuristic(preferences):
           coords = [0,0]
       #print(coords)
       yield coords
-      
+
   cell_order = fill_with_curve(preferences, h_coords())
   #print(cell_order)
-    
+
   def hilbertLocationHeuristic(wave):
     unresolved_cell_mask = (numpy.count_nonzero(wave, axis=0) > 1)
     cell_weights = numpy.where(unresolved_cell_mask, cell_order, numpy.inf)
@@ -286,7 +286,7 @@ def observe(wave, locationHeuristic, patternHeuristic):
 #     stack.append(wave.copy())
 #     propagate(wave, adj, periodic=periodic)
 #     try:
-#       pattern, i, j = observe(wave, locationHeuristic, patternHeuristic) 
+#       pattern, i, j = observe(wave, locationHeuristic, patternHeuristic)
 #       if onChoice:
 #         onChoice(pattern, i, j)
 #       wave[:, i, j] = False
@@ -304,9 +304,6 @@ def observe(wave, locationHeuristic, patternHeuristic):
 #         wave[pattern, i, j] = False
 #       else:
 #         raise
-
-  
-
 
 
 def run(wave, adj, locationHeuristic, patternHeuristic, periodic=False, backtracking=False, onBacktrack=None, onChoice=None, onObserve=None, onPropagate=None, checkFeasible=None, onFinal=None, depth=0, depth_limit=None):
@@ -515,8 +512,8 @@ def test_recurse_vs_loop():
 
 
 
-  
-  
+
+
 from pycallgraph import PyCallGraph
 from pycallgraph.output import GraphvizOutput
 
@@ -528,4 +525,3 @@ if __name__ == "__main__":
     test_propagate()
     test_run()
     #test_recurse_vs_loop()
-

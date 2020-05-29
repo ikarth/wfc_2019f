@@ -20,10 +20,22 @@ def run_default(run_experiment=False):
 
     for xnode in xdoc.getroot():
         name = xnode.get('name', "NAME")
+        if "precache" == xnode.tag:
+            tile_size = int(xnode.get('tile_size', 1)) # size of tile, in pixels
+            pattern_width = int(xnode.get('N', 2)) # Size of the patterns we want.
+            symmetry = int(xnode.get('symmetry', 8))
+            ground = int(xnode.get('ground', 0))
+            periodic_input = string2bool(xnode.get('periodic', False)) # Does the input wrap?
+            periodic_output = string2bool(xnode.get('periodic', False)) # Do we want the output to wrap?
+            generated_size = (int(xnode.get('width', 48)), int(xnode.get('height', 48)))
+            screenshots = int(xnode.get('screenshots', 3)) # Number of times to run the algorithm, will produce this many distinct outputs
+            iteration_limit = int(xnode.get('iteration_limit', 0)) # After this many iterations, time out. 0 = never time out.
+            allowed_attempts = int(xnode.get('allowed_attempts', default_allowed_attempts)) # Give up after this many contradictions
+            backtracking = string2bool(xnode.get('backtracking', default_backtracking))
+
+
         if "overlapping" == xnode.tag:
-            #seed = 3262
-            tile_size = int(xnode.get('tile_size', 1))
-            # seed for random generation, can be any number
+            #seed = 3262 # seed for random generation, can be any number
             tile_size = int(xnode.get('tile_size', 1)) # size of tile, in pixels
             pattern_width = int(xnode.get('N', 2)) # Size of the patterns we want.
             # 2x2 is the minimum, larger scales get slower fast.
@@ -61,7 +73,7 @@ def run_default(run_experiment=False):
                     {"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": None},
                     {"loc": "anti-entropy", "choice": "weighted", "backtracking":backtracking, "global": None},
                     {"loc": "lexical", "choice": "weighted", "backtracking":backtracking, "global": None},
-                    {"loc": "simple",  "choice": "weighted", "backtracking":backtracking, "global": None},  
+                    {"loc": "simple",  "choice": "weighted", "backtracking":backtracking, "global": None},
                     {"loc": "random",  "choice": "weighted", "backtracking":backtracking, "global": None}
                 ]
             if run_experiment == "backtracking":
@@ -102,7 +114,9 @@ def run_default(run_experiment=False):
                                                        log_filename=log_filename,
                                                        log_stats_to_output=log_stats_to_output,
                                                        visualize=visualize_experiment,
-                                                       logging=True
+                                                       logging=True,
+                                                       save_precache=True,
+                                                       execute_solver=False
                     )
                     if solution is None:
                         print(None)
@@ -110,12 +124,7 @@ def run_default(run_experiment=False):
                         print(solution)
 
             # These are included for my colab experiments, remove them if you're not me
-            os.system('cp -rf "/content/wfc/output/*.tsv" "/content/drive/My Drive/wfc_exper/2"')
-            os.system('cp -r "/content/wfc/output" "/content/drive/My Drive/wfc_exper/2"')
+            # os.system('cp -rf "/content/wfc/output/*.tsv" "/content/drive/My Drive/wfc_exper/2"')
+            # os.system('cp -r "/content/wfc/output" "/content/drive/My Drive/wfc_exper/2"')
 
-run_default("choice")
-run_default("backtracking")
-run_default("heuristic")
-run_default()
-run_default("choices")
-run_default("backtracking")
+run_default(False)
