@@ -221,19 +221,61 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
       precache["adjacency_shape"] = [len(precache["directions"]), *precache["adjacencies"][0].shape]
       adj_matrix = np.concatenate(precache["adjacencies"], axis=0)
       np.save(f"precache/{filename}/{timecode}/adjacency.npy", adj_matrix)
-      with open(f"precache/{filename}/{timecode}/shapes.json", 'w') as f:
-        json.dump({"wave_shape": list(precache["wave_shape"]), "adjacency_shape": list(precache["adjacency_shape"])}, f)
+      print(decode_patterns)
+      print(tile_catalog)
+      print(pattern_catalog)
+      np.save(f"precache/{filename}/{timecode}/tile_catalog.npy", tile_catalog)
+      np.save(f"precache/{filename}/{timecode}/pattern_catalog.npy", pattern_catalog)
+      np.save(f"precache/{filename}/{timecode}/decode_patterns.npy", decode_patterns)
+
+      with open(f"precache/{filename}/{timecode}/parameters.json", 'w') as f:
+        parameters = {"wave_shape": list(precache["wave_shape"]),
+                   "adjacency_shape": list(precache["adjacency_shape"]),
+                   "tile_size": tile_size,
+                   "output_destination": output_destination,
+                   "timecode": timecode,
+                   "attempt_limit": attempt_limit,
+                   "output_periodic": output_periodic,
+                   "input_periodic": input_periodic,
+                   "backtracking": backtracking,
+                   "ground": ground,
+                   "pattern_width":pattern_width,
+                   "symmetry":rotations,
+                   "width":output_size[0],
+                   "height":output_size[1],
+                   "screenshots": 1,
+                   "choice_heuristic": choice_heuristic,
+                   "loc_heuristic": loc_heuristic,
+                   "global_constraint": global_constraint,
+                   "choice_heuristic": choice_heuristic,
+                   "loc_heuristic": loc_heuristic,
+                   "input_stats": input_stats,
+                   "time_adjacency": time_adjacency,
+                   "log_stats_to_output": str(log_stats_to_output),
+                   "location_heuristic": str(location_heuristic),
+                   "pattern_heuristic": str(pattern_heuristic),
+                   "decode_patterns": str(decode_patterns),
+                   "visualize_choice": str(visualize_choice),
+                   "visualize_backtracking": str(visualize_backtracking),
+                   "visualize_wave": str(visualize_wave),
+                   "visualize_propagate": str(visualize_propagate),
+                   "visualize_final": str(visualize_final),
+                   "visualize_after": str(visualize_after),
+                   "combinedConstraints": str(combinedConstraints)
+                   }
+        print(parameters)
+        json.dump(parameters, f)
       with open(f"precache/{filename}/{timecode}/commands.xml", 'w') as f:
-        f.write(f'\t<precache name="{filename}" shapes="precache/{filename}/{timecode}/shapes.json" directions="precache/{filename}/{timecode}/directions.npy" wave="precache/{filename}/{timecode}/wave.npy" adjacency="precache/{filename}/{timecode}/adjacency.npy" tile_size="{tile_size}" N="{pattern_width}" symmetry="{rotations}" width="{output_size[0]}" height="{output_size[1]}" screenshots="1", iteration_limit="0" allowed_attempts="{attempt_limit}" backtracking="{backtracking}" ground="{ground}", periodic="{input_periodic}", choice_heuristic="{choice_heuristic}" loc_heuristic="{loc_heuristic}" global_constraint="{global_constraint}">')
+        f.write(f'\t<precache name="{filename}" parameters="precache/{filename}/{timecode}/parameters.json" directions="precache/{filename}/{timecode}/directions.npy" wave="precache/{filename}/{timecode}/wave.npy" adjacency="precache/{filename}/{timecode}/adjacency.npy" tile_size="{tile_size}" N="{pattern_width}" symmetry="{rotations}" width="{output_size[0]}" height="{output_size[1]}" screenshots="1", iteration_limit="0" allowed_attempts="{attempt_limit}" backtracking="{backtracking}" ground="{ground}", periodic="{input_periodic}", choice_heuristic="{choice_heuristic}" loc_heuristic="{loc_heuristic}" global_constraint="{global_constraint}">')
 
     if(not execute_solver):
       # We only wanted the precache, so don't run the actual solver
       return precache
 
     # actually run the solver
-    return run_wfc_solver(filename, wave, adjacency_matrix, location_heuristic, pattern_heuristic, output_periodic, backtracking, visualize_choice, visualize_backtracking, visualize_wave, visualize_propagate, visualize_final, visualize_after, combinedConstraints, pattern_catalog, tile_catalog, tile_size, output_destination, timecode, log_stats_to_output)
+    return run_wfc_solver(filename, wave, adjacency_matrix, decode_patterns, number_of_patterns, location_heuristic, pattern_heuristic, output_periodic, backtracking, visualize_choice, visualize_backtracking, visualize_wave, visualize_propagate, visualize_final, visualize_after, combinedConstraints, pattern_catalog, tile_catalog, tile_size, output_destination, timecode, log_stats_to_output, attempt_limit, input_stats, time_adjacency, time_begin, log_filename)
 
-def run_wfc_solver(filename, wave, adjacency_matrix, location_heuristic, pattern_heuristic, output_periodic, backtracking, visualize_choice, visualize_backtracking, visualize_wave, visualize_propagate, visualize_final, visualize_after, combinedConstraints, pattern_catalog, tile_catalog, tile_size, output_destination, timecode, log_stats_to_output):
+def run_wfc_solver(filename, wave, adjacency_matrix, decode_patterns, number_of_patterns, location_heuristic, pattern_heuristic, output_periodic, backtracking, visualize_choice, visualize_backtracking, visualize_wave, visualize_propagate, visualize_final, visualize_after, combinedConstraints, pattern_catalog, tile_catalog, tile_size, output_destination, timecode, log_stats_to_output, attempt_limit, input_stats, time_adjacency, time_begin, log_filename):
     ### Solving ###
 
     time_solve_start = None
