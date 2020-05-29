@@ -13,14 +13,18 @@ def string2bool(strn):
 
 def run_default(run_experiment=False):
     log_filename = f"log_{time.time()}"
-    xdoc = ET.ElementTree(file="samples_reference.xml")
+    xdoc = ET.ElementTree(file="commands.xml")
     default_allowed_attempts = 10
     default_backtracking = False
     log_stats_to_output = wfc_control.make_log_stats()
+    visualize_experiment = False
 
     for xnode in xdoc.getroot():
         name = xnode.get('name', "NAME")
         if "precache" == xnode.tag:
+            precache = xnode.get('precache', "ERROR")
+            if "ERROR" == precache:
+              console.error(f"file path to precache missing: {name}")
             tile_size = int(xnode.get('tile_size', 1)) # size of tile, in pixels
             pattern_width = int(xnode.get('N', 2)) # Size of the patterns we want.
             symmetry = int(xnode.get('symmetry', 8))
@@ -32,6 +36,36 @@ def run_default(run_experiment=False):
             iteration_limit = int(xnode.get('iteration_limit', 0)) # After this many iterations, time out. 0 = never time out.
             allowed_attempts = int(xnode.get('allowed_attempts', default_allowed_attempts)) # Give up after this many contradictions
             backtracking = string2bool(xnode.get('backtracking', default_backtracking))
+            choice_heuristic=xnode.get('choice_heuristic', "weighted")
+            loc_heuristic=xnode.get('loc_heuristic', "entropy")
+            global_constraint=xnode.get('global_constraint', "None")
+
+            for x in range(screenshots):
+                print(f"-: {name} > {x}")
+                solution = wfc_control.execute_wfc_from_precache(precache, name,
+                                                   tile_size=tile_size,
+                                                   pattern_width=pattern_width,
+                                                   rotations=symmetry,
+                                                   output_size=generated_size,
+                                                   ground=ground,
+                                                   attempt_limit=allowed_attempts,
+                                                   output_periodic=periodic_output,
+                                                   input_periodic=periodic_input,
+                                                   loc_heuristic=loc_heuristic,
+                                                   choice_heuristic=choice_heuristic,
+                                                   backtracking=backtracking,
+                                                   global_constraint=global_constraint,
+                                                   log_filename=log_filename,
+                                                   log_stats_to_output=log_stats_to_output,
+                                                   visualize=visualize_experiment,
+                                                   logging=True,
+                                                   save_precache=False,
+                                                   execute_solver=True
+                )
+                if solution is None:
+                    print(None)
+                else:
+                    print(solution)
 
 
         if "overlapping" == xnode.tag:
@@ -49,7 +83,6 @@ def run_default(run_experiment=False):
             iteration_limit = int(xnode.get('iteration_limit', 0)) # After this many iterations, time out. 0 = never time out.
             allowed_attempts = int(xnode.get('allowed_attempts', default_allowed_attempts)) # Give up after this many contradictions
             backtracking = string2bool(xnode.get('backtracking', default_backtracking))
-            visualize_experiment = False
 
             run_instructions = [{"loc": "entropy", "choice": "weighted", "backtracking":backtracking, "global": None}]
             #run_instructions = [{"loc": "entropy", "choice": "weighted", "backtracking": True, "global": "allpatterns"}]
@@ -116,7 +149,7 @@ def run_default(run_experiment=False):
                                                        visualize=visualize_experiment,
                                                        logging=True,
                                                        save_precache=True,
-                                                       execute_solver=True
+                                                       execute_solver=False
                     )
                     if solution is None:
                         print(None)

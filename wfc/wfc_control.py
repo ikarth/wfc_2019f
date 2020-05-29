@@ -42,6 +42,30 @@ def make_log_stats():
     return log_stats
 
 
+
+def execute_wfc_from_precache(precache, filename, tile_size=0, pattern_width=2, rotations=8, output_size=[48,48], ground=None, attempt_limit=10, output_periodic=True, input_periodic=True, loc_heuristic="lexical", choice_heuristic="lexical", visualize=True, global_constraint=False, backtracking=False, log_filename="log", logging=True, global_constraints=None, log_stats_to_output=None, save_precache=False, execute_solver=True):
+    new_timecode = f"{time.time()}"
+    time_begin = time.time()
+    output_destination = r"./output/"
+    input_folder = r"./images/samples/"
+    rotations -= 1 # change to zero-based
+    input_stats = {"filename": filename, "tile_size": tile_size, "pattern_width": pattern_width, "rotations": rotations, "output_size": output_size, "ground": ground, "attempt_limit": attempt_limit, "output_periodic": output_periodic, "input_periodic": input_periodic, "location heuristic": loc_heuristic, "choice heuristic": choice_heuristic, "global constraint": global_constraint, "backtracking":backtracking}
+
+    # Load the image
+    img = imageio.imread(input_folder + filename + ".png")
+    img = img[:,:,:3] # TODO: handle alpha channels
+
+    print(precache)
+    parameters = {}
+    with open(f"{precache}parameters.json", 'r') as f:
+      parameters = json.load(f)
+
+    tile_catalog = np.load(f"{precache}tile_catalog.npy")[()]
+    pattern_catalog = np.load(f"{precache}pattern_catalog.npy")[()]
+    pattern_weights = np.load(f"{precache}pattern_weights.npy")[()]
+
+    pdb.set_trace()
+
 def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size=[48,48], ground=None, attempt_limit=10, output_periodic=True, input_periodic=True, loc_heuristic="lexical", choice_heuristic="lexical", visualize=True, global_constraint=False, backtracking=False, log_filename="log", logging=True, global_constraints=None, log_stats_to_output=None, save_precache=False, execute_solver=True):
     timecode = f"{time.time()}"
     time_begin = time.time()
@@ -221,11 +245,9 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
       precache["adjacency_shape"] = [len(precache["directions"]), *precache["adjacencies"][0].shape]
       adj_matrix = np.concatenate(precache["adjacencies"], axis=0)
       np.save(f"precache/{filename}/{timecode}/adjacency.npy", adj_matrix)
-      print(decode_patterns)
-      print(tile_catalog)
-      print(pattern_catalog)
       np.save(f"precache/{filename}/{timecode}/tile_catalog.npy", tile_catalog)
       np.save(f"precache/{filename}/{timecode}/pattern_catalog.npy", pattern_catalog)
+      np.save(f"precache/{filename}/{timecode}/pattern_weights.npy", pattern_weights)
       np.save(f"precache/{filename}/{timecode}/decode_patterns.npy", decode_patterns)
 
       with open(f"precache/{filename}/{timecode}/parameters.json", 'w') as f:
@@ -266,8 +288,9 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
         print(parameters)
         json.dump(parameters, f)
       with open(f"precache/{filename}/{timecode}/commands.xml", 'w') as f:
-        f.write(f'\t<precache name="{filename}" parameters="precache/{filename}/{timecode}/parameters.json" directions="precache/{filename}/{timecode}/directions.npy" wave="precache/{filename}/{timecode}/wave.npy" adjacency="precache/{filename}/{timecode}/adjacency.npy" tile_size="{tile_size}" N="{pattern_width}" symmetry="{rotations}" width="{output_size[0]}" height="{output_size[1]}" screenshots="1", iteration_limit="0" allowed_attempts="{attempt_limit}" backtracking="{backtracking}" ground="{ground}", periodic="{input_periodic}", choice_heuristic="{choice_heuristic}" loc_heuristic="{loc_heuristic}" global_constraint="{global_constraint}">')
+        f.write(f'\t<precache name="{filename}" precache="precache/{filename}/{timecode}/" tile_size="{tile_size}" N="{pattern_width}" symmetry="{rotations}" width="{output_size[0]}" height="{output_size[1]}" screenshots="1" iteration_limit="0" allowed_attempts="{attempt_limit}" backtracking="{backtracking}" ground="{ground}" periodic="{input_periodic}" choice_heuristic="{choice_heuristic}" loc_heuristic="{loc_heuristic}" global_constraint="{global_constraint}" />')
 
+    pdb.set_trace()
     if(not execute_solver):
       # We only wanted the precache, so don't run the actual solver
       return precache
@@ -275,6 +298,7 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
     # actually run the solver
     return run_wfc_solver(filename, wave, adjacency_matrix, decode_patterns, number_of_patterns, location_heuristic, pattern_heuristic, output_periodic, backtracking, visualize_choice, visualize_backtracking, visualize_wave, visualize_propagate, visualize_final, visualize_after, combinedConstraints, pattern_catalog, tile_catalog, tile_size, output_destination, timecode, log_stats_to_output, attempt_limit, input_stats, time_adjacency, time_begin, log_filename)
 
+# This would be better as a closure I think, so it's not getting passed a ridiculous amount of state
 def run_wfc_solver(filename, wave, adjacency_matrix, decode_patterns, number_of_patterns, location_heuristic, pattern_heuristic, output_periodic, backtracking, visualize_choice, visualize_backtracking, visualize_wave, visualize_propagate, visualize_final, visualize_after, combinedConstraints, pattern_catalog, tile_catalog, tile_size, output_destination, timecode, log_stats_to_output, attempt_limit, input_stats, time_adjacency, time_begin, log_filename):
     ### Solving ###
 
