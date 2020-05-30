@@ -42,7 +42,8 @@ def run_default(run_experiment=False):
 
             for x in range(screenshots):
                 print(f"-: {name} > {x}")
-                solution = wfc_control.execute_wfc_from_precache(precache, name,
+                solution = wfc_control.execute_wfc(name,
+                                                   use_precache=precache,
                                                    tile_size=tile_size,
                                                    pattern_width=pattern_width,
                                                    rotations=symmetry,
@@ -58,7 +59,7 @@ def run_default(run_experiment=False):
                                                    log_filename=log_filename,
                                                    log_stats_to_output=log_stats_to_output,
                                                    visualize=visualize_experiment,
-                                                   logging=True,
+                                                   logging=False,
                                                    save_precache=False,
                                                    execute_solver=True
                 )
@@ -147,9 +148,9 @@ def run_default(run_experiment=False):
                                                        log_filename=log_filename,
                                                        log_stats_to_output=log_stats_to_output,
                                                        visualize=visualize_experiment,
-                                                       logging=True,
+                                                       logging=False,
                                                        save_precache=True,
-                                                       execute_solver=False
+                                                       execute_solver=True
                     )
                     if solution is None:
                         print(None)

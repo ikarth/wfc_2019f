@@ -238,7 +238,7 @@ def make_global_use_all_patterns():
 #####################################
 # Solver
 
-def propagate(wave, adj, periodic=False, onPropagate=None):
+def propagate(wave, adj_offsets, adj_matrix, periodic=False, onPropagate=None):
   last_count = wave.sum()
 
   while True:
@@ -248,21 +248,24 @@ def propagate(wave, adj, periodic=False, onPropagate=None):
     else:
       padded = numpy.pad(wave,((0,0),(1,1),(1,1)), mode='constant',constant_values=True)
 
-    for d in adj:
-      dx,dy = d
-      shifted = padded[:,1+dx:1+wave.shape[1]+dx,1+dy:1+wave.shape[2]+dy]
-      #print(f"shifted: {shifted.shape} | adj[d]: {adj[d].shape} | d: {d}")
-      #raise StopEarly
-      #supports[d] = numpy.einsum('pwh,pq->qwh', shifted, adj[d]) > 0
-      supports[d] = (adj[d] @ shifted.reshape(shifted.shape[0], -1)).reshape(shifted.shape) > 0
+    try:
+      for d_count, dir in adj_offsets:
+        dx,dy = dir
+        shifted = padded[:,1+dx:1+wave.shape[1]+dx,1+dy:1+wave.shape[2]+dy]
+        supports[dir] = (adj_matrix[d_count] @ shifted.reshape(shifted.shape[0], -1)).reshape(shifted.shape) > 0
+    except Exception as e:
+      import traceback
+      traceback.print_exc()
+      import pdb; pdb.set_trace()
 
-    for d in adj:
+    for d_count, d in adj_offsets:
       wave *= supports[d]
 
     if wave.sum() == last_count:
       break
     else:
       last_count = wave.sum()
+
 
   if onPropagate:
     onPropagate(wave)
@@ -306,7 +309,7 @@ def observe(wave, locationHeuristic, patternHeuristic):
 #         raise
 
 
-def run(wave, adj, locationHeuristic, patternHeuristic, periodic=False, backtracking=False, onBacktrack=None, onChoice=None, onObserve=None, onPropagate=None, checkFeasible=None, onFinal=None, depth=0, depth_limit=None):
+def run(wave, adj_offsets, adj_matrix, locationHeuristic, patternHeuristic, periodic=False, backtracking=False, onBacktrack=None, onChoice=None, onObserve=None, onPropagate=None, checkFeasible=None, onFinal=None, depth=0, depth_limit=None):
   #print("run.")
   if checkFeasible:
     if not checkFeasible(wave):
@@ -314,10 +317,10 @@ def run(wave, adj, locationHeuristic, patternHeuristic, periodic=False, backtrac
     if depth_limit:
       if depth > depthlimit:
         raise TimedOut
-  if depth % 50 == 0:
+  if depth % 2 == 0:
     print(depth)
   original = wave.copy()
-  propagate(wave, adj, periodic=periodic, onPropagate=onPropagate)
+  propagate(wave, adj_offsets, adj_matrix, periodic=periodic, onPropagate=onPropagate)
   try:
     pattern, i, j = observe(wave, locationHeuristic, patternHeuristic)
     if onChoice:
@@ -326,10 +329,10 @@ def run(wave, adj, locationHeuristic, patternHeuristic, periodic=False, backtrac
     wave[pattern, i, j] = True
     if onObserve:
       onObserve(wave)
-    propagate(wave, adj, periodic=periodic, onPropagate=onPropagate)
+    propagate(wave, adj_offsets, adj_matrix, periodic=periodic, onPropagate=onPropagate)
     if wave.sum() > wave.shape[1] * wave.shape[2]:
       #return run(wave, adj, locationHeuristic, patternHeuristic, periodic, backtracking, onBacktrack)
-      return run(wave, adj, locationHeuristic, patternHeuristic, periodic=periodic, backtracking=backtracking, onBacktrack=onBacktrack, onChoice=onChoice, onObserve=onObserve, onPropagate=onPropagate, checkFeasible=checkFeasible, depth=depth+1, depth_limit=depth_limit)
+      return run(wave, adj_offsets, adj_matrix, locationHeuristic, patternHeuristic, periodic=periodic, backtracking=backtracking, onBacktrack=onBacktrack, onChoice=onChoice, onObserve=onObserve, onPropagate=onPropagate, checkFeasible=checkFeasible, depth=depth+1, depth_limit=depth_limit)
     else:
       if onFinal:
         onFinal(wave)
@@ -340,7 +343,7 @@ def run(wave, adj, locationHeuristic, patternHeuristic, periodic=False, backtrac
         onBacktrack()
       wave = original
       wave[pattern, i, j] = False
-      return run(wave, adj, locationHeuristic, patternHeuristic, periodic=periodic, backtracking=backtracking, onBacktrack=onBacktrack, onChoice=onChoice, onObserve=onObserve, onPropagate=onPropagate, checkFeasible=checkFeasible, depth=depth+1, depth_limit=depth_limit)
+      return run(wave, adj_offsets, adj_matrix, locationHeuristic, patternHeuristic, periodic=periodic, backtracking=backtracking, onBacktrack=onBacktrack, onChoice=onChoice, onObserve=onObserve, onPropagate=onPropagate, checkFeasible=checkFeasible, depth=depth+1, depth_limit=depth_limit)
     else:
       if onFinal:
         onFinal(wave)

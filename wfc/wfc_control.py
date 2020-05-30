@@ -54,19 +54,27 @@ def execute_wfc_from_precache(precache, filename, tile_size=0, pattern_width=2, 
     # Load the image
     img = imageio.imread(input_folder + filename + ".png")
     img = img[:,:,:3] # TODO: handle alpha channels
+    # TODO: generalize this to more than the four cardinal directions
+    direction_offsets = list(enumerate([(0, -1), (1, 0), (0, 1), (-1, 0)]))
 
     print(precache)
     parameters = {}
-    with open(f"{precache}parameters.json", 'r') as f:
+    with open(f"{use_precache}parameters.json", 'r') as f:
       parameters = json.load(f)
 
-    tile_catalog = np.load(f"{precache}tile_catalog.npy")[()]
-    pattern_catalog = np.load(f"{precache}pattern_catalog.npy")[()]
-    pattern_weights = np.load(f"{precache}pattern_weights.npy")[()]
+    tile_catalog = np.load(f"{use_precache}tile_catalog.npy")[()]
+    pattern_catalog = np.load(f"{use_precache}pattern_catalog.npy")[()]
+    pattern_weights = np.load(f"{use_precache}pattern_weights.npy")[()]
+
+    if visualize:
+      figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, pattern_width, output_filename=f"visualization/pattern_catalog_{filename}_{timecode}")
+
+    adjacency_matrix = np.load(f"{use_precache}adjacency.npy")[()].reshape((len(direction_offsets), len(pattern_weights), len(pattern_weights)))
+    print(adjacency_matrix.shape)
 
     pdb.set_trace()
 
-def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size=[48,48], ground=None, attempt_limit=10, output_periodic=True, input_periodic=True, loc_heuristic="lexical", choice_heuristic="lexical", visualize=True, global_constraint=False, backtracking=False, log_filename="log", logging=True, global_constraints=None, log_stats_to_output=None, save_precache=False, execute_solver=True):
+def execute_wfc(filename, use_precache=None, tile_size=0, pattern_width=2, rotations=8, output_size=[48,48], ground=None, attempt_limit=10, output_periodic=True, input_periodic=True, loc_heuristic="lexical", choice_heuristic="lexical", visualize=True, global_constraint=False, backtracking=False, log_filename="log", logging=True, global_constraints=None, log_stats_to_output=None, save_precache=False, execute_solver=True):
     timecode = f"{time.time()}"
     time_begin = time.time()
     output_destination = r"./output/"
@@ -80,80 +88,97 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
     img = imageio.imread(input_folder + filename + ".png")
     img = img[:,:,:3] # TODO: handle alpha channels
 
-
     # TODO: generalize this to more than the four cardinal directions
     direction_offsets = list(enumerate([(0, -1), (1, 0), (0, 1), (-1, 0)]))
 
-    tile_catalog, tile_grid, code_list, unique_tiles = make_tile_catalog(img, tile_size)
-    pattern_catalog, pattern_weights, pattern_list, pattern_grid = make_pattern_catalog_with_rotations(tile_grid, pattern_width, input_is_periodic=input_periodic, rotations=rotations)
+    if use_precache:
+      print(use_precache)
+      parameters = {}
+      with open(f"{use_precache}parameters.json", 'r') as f:
+        parameters = json.load(f)
+
+      tile_catalog = np.load(f"{use_precache}tile_catalog.npy")[()]
+      pattern_catalog = np.load(f"{use_precache}pattern_catalog.npy")[()]
+      pattern_weights = np.load(f"{use_precache}pattern_weights.npy")[()]
+    else:
+      tile_catalog, tile_grid, code_list, unique_tiles = make_tile_catalog(img, tile_size)
+      pattern_catalog, pattern_weights, pattern_list, pattern_grid = make_pattern_catalog_with_rotations(tile_grid, pattern_width, input_is_periodic=input_periodic, rotations=rotations)
 
     print("pattern catalog")
 
-    #visualize_tiles(unique_tiles, tile_catalog, tile_grid)
-    #visualize_patterns(pattern_catalog, tile_catalog, pattern_weights, pattern_width)
-    #figure_list_of_tiles(unique_tiles, tile_catalog, output_filename=f"visualization/tilelist_{filename}_{timecode}")
-    #figure_false_color_tile_grid(tile_grid, output_filename=f"visualization/tile_falsecolor_{filename}_{timecode}")
     if visualize:
         figure_pattern_catalog(pattern_catalog, tile_catalog, pattern_weights, pattern_width, output_filename=f"visualization/pattern_catalog_{filename}_{timecode}")
 
     print("profiling adjacency relations")
-    adjacency_relations = None
 
-    if False:
-        profiler = pprofile.Profile()
-        with profiler:
-            adjacency_relations = adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, [pattern_width, pattern_width])
-        profiler.dump_stats(f"logs/profile_adj_{filename}_{timecode}.txt")
+    if use_precache:
+      adjacency_matrix = np.array(np.load(f"{use_precache}adjacency.npy")[()])
+      adjacency_matrix = adjacency_matrix.reshape((len(direction_offsets), len(pattern_weights), len(pattern_weights)))
     else:
-        adjacency_relations = adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, [pattern_width, pattern_width])
+      if False:
+          profiler = pprofile.Profile()
+          with profiler:
+              adjacency_relations = adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, [pattern_width, pattern_width])
+          profiler.dump_stats(f"logs/profile_adj_{filename}_{timecode}.txt")
+      else:
+          adjacency_relations = adjacency_extraction(pattern_grid, pattern_catalog, direction_offsets, [pattern_width, pattern_width])
 
-    print("adjacency_relations")
+      print("adjacency_relations")
 
-    if visualize:
+      if visualize:
         figure_adjacencies(adjacency_relations, direction_offsets, tile_catalog, pattern_catalog, pattern_width, [tile_size, tile_size], output_filename=f"visualization/adjacency_{filename}_{timecode}_A")
         #figure_adjacencies(adjacency_relations, direction_offsets, tile_catalog, pattern_catalog, pattern_width, [tile_size, tile_size], output_filename=f"visualization/adjacency_{filename}_{timecode}_B", render_b_first=True)
 
     print(f"output size: {output_size}\noutput periodic: {output_periodic}")
     number_of_patterns = len(pattern_weights)
     print(f"# patterns: {number_of_patterns}")
-    decode_patterns = dict(enumerate(pattern_list))
-    encode_patterns = {x: i for i, x in enumerate(pattern_list)}
-    encode_directions = {j:i for i,j in direction_offsets}
 
-    adjacency_list = {}
-    for i,d in direction_offsets:
+
+    if use_precache:
+      decode_patterns = np.load(f"{use_precache}decode_patterns.npy")[()]
+      encode_patterns = np.load(f"{use_precache}encode_patterns.npy")[()]
+      wave = np.load(f"{use_precache}wave.npy")
+      time_adjacency = parameters["time_adjacency"]
+    else:
+      decode_patterns = dict(enumerate(pattern_list))
+      encode_patterns = {x: i for i, x in enumerate(pattern_list)}
+      encode_directions = {j:i for i,j in direction_offsets}
+
+      adjacency_list = {}
+      for i,d in direction_offsets:
         adjacency_list[d] = [set() for i in pattern_weights]
-    #print(adjacency_list)
-    for i in adjacency_relations:
+      #print(adjacency_list)
+      for i in adjacency_relations:
         #print(i)
         #print(decode_patterns[i[1]])
         adjacency_list[i[0]][encode_patterns[i[1]]].add(encode_patterns[i[2]])
 
-    print(f"adjacency: {len(adjacency_list)}")
+      print(f"adjacency: {len(adjacency_list)}")
 
-    time_adjacency = time.time()
+      time_adjacency = time.time()
 
-    ### Ground ###
+      ### Ground ###
 
-    ground_list = []
-    if not (ground is 0):
+      ground_list = []
+      if not (ground is 0):
         ground_list = np.vectorize(lambda x : encode_patterns[x])(pattern_grid.flat[(ground - 1):])
-    if len(ground_list) < 1:
+      if len(ground_list) < 1:
         ground_list = None
 
-    if not (ground_list is None):
+      if not (ground_list is None):
         ground_catalog = {encode_patterns[k]:v for k,v in pattern_catalog.items() if encode_patterns[k] in ground_list}
         if visualize:
             figure_pattern_catalog(ground_catalog, tile_catalog, pattern_weights, pattern_width, output_filename=f"visualization/patterns_ground_{filename}_{timecode}")
 
-    wave = makeWave(number_of_patterns, output_size[0], output_size[1], ground=ground_list)
-    adjacency_matrix = makeAdj(adjacency_list)
+      wave = makeWave(number_of_patterns, output_size[0], output_size[1], ground=ground_list)
+      adjacency_matrix = makeAdj(adjacency_list)
 
     ### Heuristics ###
 
     encoded_weights = np.zeros((number_of_patterns), dtype=np.float64)
     for w_id, w_val in pattern_weights.items():
-        encoded_weights[encode_patterns[w_id]] = w_val
+      encoded_weights[encode_patterns[w_id]] = w_val
+
     choice_random_weighting = np.random.random(wave.shape[1:]) * 0.1
 
     pattern_heuristic =  lexicalPatternHeuristic
@@ -222,84 +247,95 @@ def execute_wfc(filename, tile_size=0, pattern_width=2, rotations=8, output_size
 
     ### Save Precache ###
 
-    precache = {}
+    if use_precache:
+      pass # no re-saving the precache
+    else:
+      precache = {}
 
-    if save_precache:
-      pathlib.Path(f"precache/{filename}/{timecode}/").mkdir(parents=True, exist_ok=True)
+      if save_precache:
+        pathlib.Path(f"precache/{filename}/{timecode}/").mkdir(parents=True, exist_ok=True)
 
-      print(wave)
-      print(adjacency_matrix[(0, -1)].todense())
-      print()
-      precache["wave_shape"] = np.asarray(wave).shape
+        precache["wave_shape"] = np.asarray(wave).shape
 
-      precache["wave"] = np.asarray(wave)
+        precache["wave"] = np.asarray(wave)
 
-      np.save(f"precache/{filename}/{timecode}/wave.npy", precache["wave"])
+        np.save(f"precache/{filename}/{timecode}/wave.npy", precache["wave"])
 
-      precache["directions"] = []
-      precache["adjacencies"] = []
-      for k,v in adjacency_matrix.items():
-         precache["directions"].append(k)
-         precache["adjacencies"].append(v.A)
-      np.save(f"precache/{filename}/{timecode}/directions.npy", np.array(precache["directions"]))
-      precache["adjacency_shape"] = [len(precache["directions"]), *precache["adjacencies"][0].shape]
-      adj_matrix = np.concatenate(precache["adjacencies"], axis=0)
-      np.save(f"precache/{filename}/{timecode}/adjacency.npy", adj_matrix)
-      np.save(f"precache/{filename}/{timecode}/tile_catalog.npy", tile_catalog)
-      np.save(f"precache/{filename}/{timecode}/pattern_catalog.npy", pattern_catalog)
-      np.save(f"precache/{filename}/{timecode}/pattern_weights.npy", pattern_weights)
-      np.save(f"precache/{filename}/{timecode}/decode_patterns.npy", decode_patterns)
+        precache["directions"] = []
+        precache["adjacencies"] = []
+        for k,v in adjacency_matrix.items():
+           precache["directions"].append(k)
+           precache["adjacencies"].append(v.A)
+        np.save(f"precache/{filename}/{timecode}/directions.npy", np.array(precache["directions"]))
+        precache["adjacency_shape"] = [len(precache["directions"]), *precache["adjacencies"][0].shape]
+        adj_matrix = np.concatenate(precache["adjacencies"], axis=0)
+        np.save(f"precache/{filename}/{timecode}/adjacency.npy", adj_matrix)
+        np.save(f"precache/{filename}/{timecode}/tile_catalog.npy", tile_catalog)
+        np.save(f"precache/{filename}/{timecode}/pattern_catalog.npy", pattern_catalog)
+        np.save(f"precache/{filename}/{timecode}/pattern_weights.npy", pattern_weights)
+        np.save(f"precache/{filename}/{timecode}/decode_patterns.npy", decode_patterns)
+        np.save(f"precache/{filename}/{timecode}/encode_patterns.npy", encode_patterns)
 
-      with open(f"precache/{filename}/{timecode}/parameters.json", 'w') as f:
-        parameters = {"wave_shape": list(precache["wave_shape"]),
-                   "adjacency_shape": list(precache["adjacency_shape"]),
-                   "tile_size": tile_size,
-                   "output_destination": output_destination,
-                   "timecode": timecode,
-                   "attempt_limit": attempt_limit,
-                   "output_periodic": output_periodic,
-                   "input_periodic": input_periodic,
-                   "backtracking": backtracking,
-                   "ground": ground,
-                   "pattern_width":pattern_width,
-                   "symmetry":rotations,
-                   "width":output_size[0],
-                   "height":output_size[1],
-                   "screenshots": 1,
-                   "choice_heuristic": choice_heuristic,
-                   "loc_heuristic": loc_heuristic,
-                   "global_constraint": global_constraint,
-                   "choice_heuristic": choice_heuristic,
-                   "loc_heuristic": loc_heuristic,
-                   "input_stats": input_stats,
-                   "time_adjacency": time_adjacency,
-                   "log_stats_to_output": str(log_stats_to_output),
-                   "location_heuristic": str(location_heuristic),
-                   "pattern_heuristic": str(pattern_heuristic),
-                   "decode_patterns": str(decode_patterns),
-                   "visualize_choice": str(visualize_choice),
-                   "visualize_backtracking": str(visualize_backtracking),
-                   "visualize_wave": str(visualize_wave),
-                   "visualize_propagate": str(visualize_propagate),
-                   "visualize_final": str(visualize_final),
-                   "visualize_after": str(visualize_after),
-                   "combinedConstraints": str(combinedConstraints)
-                   }
-        print(parameters)
-        json.dump(parameters, f)
-      with open(f"precache/{filename}/{timecode}/commands.xml", 'w') as f:
-        f.write(f'\t<precache name="{filename}" precache="precache/{filename}/{timecode}/" tile_size="{tile_size}" N="{pattern_width}" symmetry="{rotations}" width="{output_size[0]}" height="{output_size[1]}" screenshots="1" iteration_limit="0" allowed_attempts="{attempt_limit}" backtracking="{backtracking}" ground="{ground}" periodic="{input_periodic}" choice_heuristic="{choice_heuristic}" loc_heuristic="{loc_heuristic}" global_constraint="{global_constraint}" />')
+        with open(f"precache/{filename}/{timecode}/parameters.json", 'w') as f:
+          parameters = {"wave_shape": list(precache["wave_shape"]),
+                     "adjacency_shape": list(precache["adjacency_shape"]),
+                     "tile_size": tile_size,
+                     "output_destination": output_destination,
+                     "timecode": timecode,
+                     "attempt_limit": attempt_limit,
+                     "output_periodic": output_periodic,
+                     "input_periodic": input_periodic,
+                     "backtracking": backtracking,
+                     "ground": ground,
+                     "pattern_width":pattern_width,
+                     "symmetry":rotations,
+                     "width":output_size[0],
+                     "height":output_size[1],
+                     "screenshots": 1,
+                     "choice_heuristic": choice_heuristic,
+                     "loc_heuristic": loc_heuristic,
+                     "global_constraint": global_constraint,
+                     "choice_heuristic": choice_heuristic,
+                     "loc_heuristic": loc_heuristic,
+                     "input_stats": input_stats,
+                     "time_adjacency": time_adjacency,
+                     "log_stats_to_output": str(log_stats_to_output),
+                     "location_heuristic": str(location_heuristic),
+                     "pattern_heuristic": str(pattern_heuristic),
+                     "decode_patterns": str(decode_patterns),
+                     "visualize_choice": str(visualize_choice),
+                     "visualize_backtracking": str(visualize_backtracking),
+                     "visualize_wave": str(visualize_wave),
+                     "visualize_propagate": str(visualize_propagate),
+                     "visualize_final": str(visualize_final),
+                     "visualize_after": str(visualize_after),
+                     "combinedConstraints": str(combinedConstraints)
+                     }
+          json.dump(parameters, f)
+        with open(f"precache/{filename}/{timecode}/commands.xml", 'w') as f:
+          f.write(f'\t<precache name="{filename}" precache="precache/{filename}/{timecode}/" tile_size="{tile_size}" N="{pattern_width}" symmetry="{rotations}" width="{output_size[0]}" height="{output_size[1]}" screenshots="1" iteration_limit="0" allowed_attempts="{attempt_limit}" backtracking="{backtracking}" ground="{ground}" periodic="{input_periodic}" choice_heuristic="{choice_heuristic}" loc_heuristic="{loc_heuristic}" global_constraint="{global_constraint}" />')
 
-    pdb.set_trace()
+    #pdb.set_trace()
     if(not execute_solver):
       # We only wanted the precache, so don't run the actual solver
       return precache
 
+    adj_matrix = []
+    print(type(adjacency_matrix))
+    if(type(np.array([])) == type(adjacency_matrix)):
+      adj_matrix = adjacency_matrix
+    else:
+      for k, n in enumerate(adjacency_matrix.keys()):
+        adj_matrix.append(np.array(adjacency_matrix[n].todense())) # convert the spare matrix to a dense matrix because we need processing speed, not memory savings. And also it simplifies the solver.
+      adj_matrix = np.stack(adj_matrix, axis=0)
+
     # actually run the solver
-    return run_wfc_solver(filename, wave, adjacency_matrix, decode_patterns, number_of_patterns, location_heuristic, pattern_heuristic, output_periodic, backtracking, visualize_choice, visualize_backtracking, visualize_wave, visualize_propagate, visualize_final, visualize_after, combinedConstraints, pattern_catalog, tile_catalog, tile_size, output_destination, timecode, log_stats_to_output, attempt_limit, input_stats, time_adjacency, time_begin, log_filename)
+    return run_wfc_solver(filename, wave, adj_matrix, decode_patterns, number_of_patterns, location_heuristic, pattern_heuristic, output_periodic, backtracking, visualize_choice, visualize_backtracking, visualize_wave, visualize_propagate, visualize_final, visualize_after, combinedConstraints, pattern_catalog, tile_catalog, tile_size, output_destination, timecode, log_stats_to_output, attempt_limit, input_stats, time_adjacency, time_begin, log_filename)
 
 # This would be better as a closure I think, so it's not getting passed a ridiculous amount of state
 def run_wfc_solver(filename, wave, adjacency_matrix, decode_patterns, number_of_patterns, location_heuristic, pattern_heuristic, output_periodic, backtracking, visualize_choice, visualize_backtracking, visualize_wave, visualize_propagate, visualize_final, visualize_after, combinedConstraints, pattern_catalog, tile_catalog, tile_size, output_destination, timecode, log_stats_to_output, attempt_limit, input_stats, time_adjacency, time_begin, log_filename):
+
+    direction_offsets = list(enumerate([(0, -1), (1, 0), (0, 1), (-1, 0)]))
     ### Solving ###
 
     time_solve_start = None
@@ -319,6 +355,7 @@ def run_wfc_solver(filename, wave, adjacency_matrix, decode_patterns, number_of_
             #with PyCallGraph(output=GraphvizOutput(output_file=f"visualization/pycallgraph_{filename}_{timecode}.png")):
                 try:
                     solution = run(wave.copy(),
+                                   direction_offsets,
                                    adjacency_matrix,
                                    locationHeuristic=location_heuristic,
                                    patternHeuristic=pattern_heuristic,
