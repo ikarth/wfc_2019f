@@ -1,0 +1,33 @@
+[project]
+name = "wfc_python"
+version = "2019f"
+description = "Implementation of wave function collapse in Python."
+authors = [
+    "Isaac Karth <isaac@isaackarth.com>"
+]
+license = "MIT"
+readme = "README.md"
+python = "^3.5"
+repository = "https://github.com/ikarth/wfc_python"
+keywords = ["sample", "wfc", "wave function collapse"]
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Topic :: Utilities",
+    "License :: OSI Approved :: MIT License",
+]
+
+[build-system]
+
+requires = [
+    "setuptools",
+]
+build-backend = "setuptools.build_meta"
+
+[dependencies]
+numpy
+imageio
+
+[dev-dependencies]
+pytest
+sphinx
