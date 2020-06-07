@@ -5,6 +5,7 @@ import pathlib
 import itertools
 import imageio
 import matplotlib
+import struct
 import matplotlib.pyplot as plt
 import numpy as np
 from .wfc_patterns import pattern_grid_to_tiles
@@ -55,7 +56,6 @@ def argmax_unique(arr, axis):
     """Return a mask so that we can exclude the nonunique maximums, i.e. the nodes that aren't completely resolved"""
     arrm = np.argmax(arr, axis)
     arrs = np.sum(arr, axis)
-    uni_argmax = arrs == 1
     nonunique_mask = np.ma.make_mask((arrs == 1) is False)
     uni_argmax = np.ma.masked_array(arrm, mask=nonunique_mask, fill_value=-1)
     return uni_argmax, nonunique_mask
@@ -187,7 +187,7 @@ def make_solver_visualizers(
                 "inferno",
             )
         if wave:
-            assigned_patterns, nonunique_mask = argmax_unique(wave, 0)
+            _assigned_patterns, nonunique_mask = argmax_unique(wave, 0)
             resolved_by_propagation = (
                 np.ma.mask_or(nonunique_mask, resolution_method != 0) == 0
             )
@@ -330,7 +330,7 @@ def figure_unified(figure_name_overall, filename, data):
         1, len(data), sharey="row", gridspec_kw={"hspace": 0, "wspace": 0}
     )
 
-    for idx, data_obj in enumerate(data):
+    for idx, _data_obj in enumerate(data):
         if "image" == data[idx]["datatype"]:
             axs[idx].imshow(data[idx]["data"], interpolation="nearest")
         else:
@@ -522,7 +522,7 @@ def figure_false_color_tile_grid(tile_grid, output_filename="./false_color_tiles
 
 
 def figure_tile_grid(tile_grid, tile_catalog, tile_size):
-    img = tile_grid_to_image(tile_grid, tile_catalog, tile_size)
+    tile_grid_to_image(tile_grid, tile_catalog, tile_size)
 
 
 def render_pattern(render_pattern, tile_catalog):
@@ -549,10 +549,10 @@ def figure_pattern_catalog(
 ):
     s_columns = 24 // min(24, pattern_width)
     s_rows = 1 + (int(len(pattern_catalog)) // s_columns)
-    fig = plt.figure(figsize=(s_columns, s_rows * 1.5))
+    _fig = plt.figure(figsize=(s_columns, s_rows * 1.5))
     plt.title("Extracted Patterns")
     counter = 0
-    for i, tcode in pattern_catalog.items():
+    for i, _tcode in pattern_catalog.items():
         pat_cat = pattern_catalog[i]
         ptr = render_pattern(pat_cat, tile_catalog).astype(np.uint8)
         sp = plt.subplot(s_rows, s_columns, counter + 1)
@@ -659,7 +659,7 @@ def figure_adjacencies(
 ):
     #    try:
     adjacency_directions_list = list(dict(adjacency_directions).values())
-    figadj = plt.figure(
+    _figadj = plt.figure(
         figsize=(12, 1 + len(adjacency_relations_list[:64])), edgecolor="b"
     )
     plt.title("Adjacencies")
