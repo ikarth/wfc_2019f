@@ -269,7 +269,7 @@ def propagate(wave, adj_offsets, adj_matrix, periodic=False, onPropagate=None):
   if onPropagate:
     onPropagate(wave)
 
-  if wave.sum() == 0:
+  if (wave.sum(axis=0) == 0).any():
     raise Contradiction
 
 def propagate_stack(wave, adj_offsets, adj_matrix, periodic=False, onPropagate=None):
@@ -304,7 +304,7 @@ def propagate_stack(wave, adj_offsets, adj_matrix, periodic=False, onPropagate=N
 
   import pdb; pdb.set_trace()
 
-  if wave.sum() == 0:
+  if (wave.sum(axis=0) == 0).any():
     raise Contradiction
 
 
