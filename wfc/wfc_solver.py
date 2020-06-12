@@ -266,12 +266,47 @@ def propagate(wave, adj_offsets, adj_matrix, periodic=False, onPropagate=None):
     else:
       last_count = wave.sum()
 
-
   if onPropagate:
     onPropagate(wave)
 
   if wave.sum() == 0:
     raise Contradiction
+
+def propagate_stack(wave, adj_offsets, adj_matrix, periodic=False, onPropagate=None):
+  """
+  TODO
+  """
+  last_count = wave.sum()
+
+  while True:
+    supports = {}
+    if periodic:
+      padded = numpy.pad(wave,((0,0),(1,1),(1,1)), mode='wrap')
+    else:
+      padded = numpy.pad(wave,((0,0),(1,1),(1,1)), mode='constant',constant_values=True)
+
+    for d_count, dir in adj_offsets:
+        dx,dy = dir
+        shifted = padded[:,1+dx:1+wave.shape[1]+dx,1+dy:1+wave.shape[2]+dy]
+        supports[dir] = (adj_matrix[d_count] @ shifted.reshape(shifted.shape[0], -1)).reshape(shifted.shape) > 0
+
+    for d_count, d in adj_offsets:
+      wave *= supports[d]
+
+    if wave.sum() == last_count:
+      break
+    else:
+      last_count = wave.sum()
+
+  if onPropagate:
+    onPropagate(wave)
+
+
+  import pdb; pdb.set_trace()
+
+  if wave.sum() == 0:
+    raise Contradiction
+
 
 
 def observe(wave, locationHeuristic, patternHeuristic):

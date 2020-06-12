@@ -1,0 +1,4 @@
+<samples>
+	  <_overlapping name="Less Rooms" tile_size="1" N="3" symmetry="7" width="48" height="48" screenshots="1" iteration_limit="0" allowed_attempts="10" backtracking="False" ground="0" periodic="True" choice_heuristic="weighted" loc_heuristic="entropy" global_constraint="None" />
+		<precache name="Less Rooms" precache="precache/Less Rooms/1590785203.138873/" tile_size="1" N="3" symmetry="6" width="48" height="48" screenshots="1" iteration_limit="0" allowed_attempts="10" backtracking="False" ground="0" periodic="True" choice_heuristic="weighted" loc_heuristic="entropy" global_constraint="None" />
+	</samples>

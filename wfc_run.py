@@ -13,7 +13,7 @@ def string2bool(strn):
 
 def run_default(run_experiment=False):
     log_filename = f"log_{time.time()}"
-    xdoc = ET.ElementTree(file="commands.xml")
+    xdoc = ET.ElementTree(file="pre.xml")
     default_allowed_attempts = 10
     default_backtracking = False
     log_stats_to_output = wfc_control.make_log_stats()
@@ -129,6 +129,7 @@ def run_default(run_experiment=False):
                                     {"loc": "entropy", "choice": "weighted", "backtracking": False,  "global": None},
                                     {"loc": "entropy", "choice": "random", "backtracking": False, "global": None},]
 
+            screenshots = 1
             for experiment in run_instructions:
                 for x in range(screenshots):
                     print(f"-: {name} > {x}")
@@ -150,7 +151,7 @@ def run_default(run_experiment=False):
                                                        visualize=visualize_experiment,
                                                        logging=False,
                                                        save_precache=True,
-                                                       execute_solver=True
+                                                       execute_solver=False
                     )
                     if solution is None:
                         print(None)
