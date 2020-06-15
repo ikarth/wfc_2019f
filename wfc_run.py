@@ -13,11 +13,11 @@ def string2bool(strn):
 
 def run_default(run_experiment=False):
     log_filename = f"log_{time.time()}"
-    xdoc = ET.ElementTree(file="pre.xml")
-    default_allowed_attempts = 10
+    xdoc = ET.ElementTree(file="samples_chessdots.xml")
+    default_allowed_attempts = 1
     default_backtracking = False
     log_stats_to_output = wfc_control.make_log_stats()
-    visualize_experiment = False
+    visualize_experiment = True
 
     for xnode in xdoc.getroot():
         name = xnode.get('name', "NAME")
@@ -150,8 +150,8 @@ def run_default(run_experiment=False):
                                                        log_stats_to_output=log_stats_to_output,
                                                        visualize=visualize_experiment,
                                                        logging=False,
-                                                       save_precache=True,
-                                                       execute_solver=False
+                                                       save_precache=False,
+                                                       execute_solver=True
                     )
                     if solution is None:
                         print(None)

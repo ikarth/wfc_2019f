@@ -3,6 +3,7 @@ import numpy
 import sys
 import math
 import itertools
+from numba import jit
 
 # By default Python has a very low recursion limit.
 # Might still be better to rewrite te recursion as a loop, of course
@@ -243,20 +244,16 @@ def propagate(wave, adj_offsets, adj_matrix, periodic=False, onPropagate=None):
 
   while True:
     supports = {}
-    if periodic:
-      padded = numpy.pad(wave,((0,0),(1,1),(1,1)), mode='wrap')
-    else:
-      padded = numpy.pad(wave,((0,0),(1,1),(1,1)), mode='constant',constant_values=True)
+    # if periodic:
+    #   padded = numpy.pad(wave,((0,0),(1,1),(1,1)), mode='wrap')
+    # else:
+    #   padded = numpy.pad(wave,((0,0),(1,1),(1,1)), mode='constant',constant_values=True)
 
-    try:
-      for d_count, dir in adj_offsets:
-        dx,dy = dir
-        shifted = padded[:,1+dx:1+wave.shape[1]+dx,1+dy:1+wave.shape[2]+dy]
-        supports[dir] = (adj_matrix[d_count] @ shifted.reshape(shifted.shape[0], -1)).reshape(shifted.shape) > 0
-    except Exception as e:
-      import traceback
-      traceback.print_exc()
-      import pdb; pdb.set_trace()
+    for d_count, dir in adj_offsets:
+      dx,dy = dir
+      shifted = numpy.roll(wave, (dx, dy), axis=(1,2))
+      #shifted = padded[:,1+dx:1+wave.shape[1]+dx,1+dy:1+wave.shape[2]+dy]
+      supports[dir] = (adj_matrix[d_count] @ shifted.reshape(shifted.shape[0], -1)).reshape(shifted.shape) > 0
 
     for d_count, d in adj_offsets:
       wave *= supports[d]
@@ -272,41 +269,147 @@ def propagate(wave, adj_offsets, adj_matrix, periodic=False, onPropagate=None):
   if (wave.sum(axis=0) == 0).any():
     raise Contradiction
 
-def propagate_stack(wave, adj_offsets, adj_matrix, periodic=False, onPropagate=None):
+
+def propagate_with_stack(wave, adj_offsets, inverted_offsets, adj_matrix, propagation_stack, compatibility_matrix, periodic=False, onPropagate=None):
+  if onPropagate:
+    onPropagate(wave)
+  print(propagation_stack)
+  #print(wave)
+  #import pdb; pdb.set_trace()
+  while len(propagation_stack) > 0:
+    curr_cell, curr_pat = propagation_stack.pop()
+    print(f"propagation_stack size = {len(propagation_stack)}")
+    #print(f"{curr_pat}: {curr_cell}")
+    #print(f"=> {curr_cell} : {curr_pat} ")
+    for d_count, dir in adj_offsets:
+      dx,dy = dir
+      if periodic:
+        dx = ((curr_cell[0] + dx) + wave.shape[1]) % wave.shape[1]
+        dy = ((curr_cell[1] + dy) + wave.shape[2]) % wave.shape[2]
+      else:
+        if (dx < 0) or (dy < 0) or (dx >= wave.shape[1]) or (dy >= wave.shape[2]):
+          break
+      adj_propagator = adj_matrix[d_count, curr_pat]
+      for p_count in range(adj_propagator.shape[0]):
+        adj_valid = adj_propagator[p_count]
+        print("\t", p_count, "\t", adj_valid)
+        if adj_valid:
+          compatibility_matrix[dx, dy, p_count, d_count] -= 1
+          # if compatibility_matrix[dx, dy, p_count, d_count] < 0:
+          #   print("Something has gone very very wrong")
+          #   print(dx, dy, p_count, d_count)
+          #   print(compatibility_matrix[dx, dy])
+          if compatibility_matrix[dx, dy, p_count, d_count] == 0:
+            wave, compatibility_matrix, propagation_stack = ban(wave, compatibility_matrix, propagation_stack, dx, dy, p_count, adj_offsets, inverted_offsets)
+            print(propagation_stack[-1])
+            print(len(propagation_stack))
+      #import pdb; pdb.set_trace()
+      # for p1 in range(wave.shape[0]):
+      #   pattern_valid = adj_matrix[d_count, curr_pat, p1]
+      #   # print('---')
+      #   #print(f"{dx},{dy} => {p2}")
+      #   if pattern_valid:
+      #     compatibility_matrix[dx, dy, p1, d_count] -= 1
+      #     # print(compatibility_matrix.shape)
+      #     # print(compatibility_matrix[dx, dy, d_count])
+      #     # print(compatibility_matrix[dx, dy, d_count, p1])
+      #     # print(compatibility_matrix[dx, dy, d_count, p1].shape)
+      #     if 0 <= compatibility_matrix[dx, dy, p1, d_count]:
+      #       #import pdb; pdb.set_trace()
+      #       wave, compatibility_matrix, propagation_stack = ban(wave, compatibility_matrix, propagation_stack, dx, dy, p1, adj_offsets, inverted_offsets)
+    #print(wave)
+    print(propagation_stack)
+    print(wave.sum(axis=(0)))
+    # for d_count, dir in adj_offsets:
+    #  print(f"direction:{d_count}\t{dir}")
+    #  for p1 in range(wave.shape[0]):
+    #    print(p1)
+    #    print(compatibility_matrix[:,:,p1,d_count])
+    #import pdb; pdb.set_trace()
+    if (wave.sum(axis=0) <= 0).any():
+      raise Contradiction
+
+
+  if (wave.sum(axis=0) <= 0).any():
+    raise Contradiction
+
+def propagate_with_stack_two(wave, adj_offsets, adj_matrix, periodic=False, onPropagate=None, propagation_stack=[]):
+  if onPropagate:
+    onPropagate(wave)
+
+  while len(propagation_stack) > 0:
+    curr_cell, curr_pat = propagation_stack.pop()
+    for d_count, dir in adj_offsets:
+      propagation_stack.append([[dx, dy], curr_pat])
+      dx,dy = dir
+      if periodic:
+        dx = ((curr_cell[0] + dx) + wave.shape[1]) % wave.shape[1]
+        dy = ((curr_cell[1] + dy) + wave.shape[2]) % wave.shape[2]
+      else:
+        if (dx < 0) or (dy < 0) or (dx >= wave.shape[1]) or (dy >= wave.shape[2]):
+          break
+      # for pat in range(wave.shape[0]):
+      #   wave[pat, dx, dy] =
+
+      propagation_stack.append([[dx, dy], curr_pat])
+    # for d_count, dir in adj_offsets:
+    #   dx,dy = dir
+    #   if periodic:
+    #     dx = ((curr_cell[0] + dx) + wave.shape[1]) % wave.shape[1]
+    #     dy = ((curr_cell[1] + dy) + wave.shape[2]) % wave.shape[2]
+    #   else:
+    #     raise NotImplementedError
+    #   changed=False
+    #   for pat in range(wave.shape[0]):
+    #     if wave[pat, dx, dy]:
+    #       #if adj_matrix[d_count, pat, curr_pat]:
+    #       adj_table = adj_matrix[d_count, :, pat]
+    #       neighbor_cell = wave[:, curr_cell[0], curr_cell[1]]
+    #       supported = numpy.logical_and(neighbor_cell, adj_table)
+    #       #import pdb; pdb.set_trace()
+    #       if not supported.any():
+    #         wave[pat, dx, dy] = False
+    #         changed = True
+    #   if changed:
+    #     propagation_stack.append([[dx, dy], curr_pat])
+    #print("->", len(propagation_stack))
+    #import pdb; pdb.set_trace()
+
+  if (wave.sum(axis=0) <= 0).any():
+    raise Contradiction
+
+
+def propagate_with_stack_one(wave, adj_offsets, adj_matrix, periodic=False, onPropagate=None, propagation_stack=[]):
   """
-  TODO
+  Run the propagation with a stack rather than multiplying across the entire wave.
   """
   last_count = wave.sum()
 
-  while True:
-    supports = {}
-    if periodic:
-      padded = numpy.pad(wave,((0,0),(1,1),(1,1)), mode='wrap')
-    else:
-      padded = numpy.pad(wave,((0,0),(1,1),(1,1)), mode='constant',constant_values=True)
-
+  while len(propagation_stack) > 0:
+    curr_cell, curr_pat = propagation_stack.pop()
     for d_count, dir in adj_offsets:
-        dx,dy = dir
-        shifted = padded[:,1+dx:1+wave.shape[1]+dx,1+dy:1+wave.shape[2]+dy]
-        supports[dir] = (adj_matrix[d_count] @ shifted.reshape(shifted.shape[0], -1)).reshape(shifted.shape) > 0
-
-    for d_count, d in adj_offsets:
-      wave *= supports[d]
-
-    if wave.sum() == last_count:
-      break
-    else:
-      last_count = wave.sum()
+      dx,dy = dir
+      if periodic:
+        dx = ((curr_cell[0] - dx) + wave.shape[1]) % wave.shape[1]
+        dy = ((curr_cell[1] - dy) + wave.shape[2]) % wave.shape[2]
+      else:
+        dx = max(0, min((curr_cell[0] - dx), wave.shape[1] - 1))
+        dy = max(0, min((curr_cell[1] - dy), wave.shape[2] - 1))
+      cell_pattern_column = wave[:, curr_cell[0], curr_cell[1]]
+      neighbor_pattern_column = wave[:, dx, dy]
+      adj_mask = adj_matrix[d_count]
+      neighbor_pattern_row = neighbor_pattern_column.reshape((neighbor_pattern_column.shape[0], 1))
+      remaining_possibilities = numpy.logical_and(numpy.logical_and(cell_pattern_column, neighbor_pattern_row), adj_mask).any(axis=1)
+      delta = numpy.logical_and(numpy.invert(remaining_possibilities), neighbor_pattern_column)
+      if delta.any():
+        propagation_stack.append([[dx, dy], curr_pat])
+      wave[:, dx, dy] = remaining_possibilities
 
   if onPropagate:
     onPropagate(wave)
 
-
-  import pdb; pdb.set_trace()
-
   if (wave.sum(axis=0) == 0).any():
     raise Contradiction
-
 
 
 def observe(wave, locationHeuristic, patternHeuristic):
@@ -343,6 +446,100 @@ def observe(wave, locationHeuristic, patternHeuristic):
 #       else:
 #         raise
 
+def ban(wave, compatibility_matrix, prop_stack, i, j, pattern, adj_offsets, inverted_offsets):
+  wave[pattern, i, j] = False
+  for d_count, dir in adj_offsets:
+    dx,dy = dir
+    compatibility_matrix[i, j, pattern, d_count] = 0
+    #print(f"banning:\t{i}, {j}\t{d_count}\t{pattern}")
+  prop_stack.append(((i, j), pattern))
+  #print(f"{i}\t{j}\t{wave[:, i, j]}")
+  return wave, compatibility_matrix, prop_stack
+
+def invert_offsets(adj_offsets):
+  inverted_offsets = []
+  for d_count, dir in adj_offsets:
+    dx,dy = dir
+    flipped = (0-dx, 0-dy)
+    for d_count2, dir2 in adj_offsets:
+      i,j = dir2
+      if flipped == (i,j):
+        inverted_offsets.append((d_count2, dir2))
+  return inverted_offsets
+
+def run_with_loop(wave, adj_offsets, adj_matrix, locationHeuristic, patternHeuristic, periodic=False, backtracking=False, onBacktrack=None, onChoice=None, onObserve=None, onPropagate=None, checkFeasible=None, onFinal=None, depth=0, depth_limit=None):
+  inverted_offsets = invert_offsets(adj_offsets)
+  compatibility_matrix = numpy.zeros((wave.shape[1], wave.shape[2], wave.shape[0], len(adj_offsets)), dtype=numpy.int16)
+  for i in range(wave.shape[1]):
+    for j in range(wave.shape[2]):
+      for d_count, dir in adj_offsets:
+        dx,dy = dir
+        for p1 in range(wave.shape[0]):
+          compatibility_matrix[i, j, p1, d_count] = adj_matrix[d_count, :, p1].sum()
+  print("compatibility:\n")
+  for d_count, dir in adj_offsets:
+    print(f"direction:{d_count}\t{dir}")
+    for p1 in range(wave.shape[0]):
+      print(p1)
+      print(compatibility_matrix[:,:,p1, d_count])
+  original = wave.copy()
+  past_waves = [(wave.copy(), compatibility_matrix.copy())]
+  #propagate(wave, adj_offsets, adj_matrix, periodic=periodic, onPropagate=onPropagate)
+  propagation_stack = []
+
+  depth = 0
+  while True:
+    if checkFeasible:
+      if not checkFeasible(wave):
+        raise Contradiction
+      if depth_limit:
+        if depth > depthlimit:
+          raise TimedOut
+    if depth % 1 == 0:
+      print(depth)
+      print(wave.sum())
+      print(compatibility_matrix.sum())
+    try:
+      pattern, i, j = observe(wave, locationHeuristic, patternHeuristic)
+      if onChoice:
+        onChoice(pattern, i, j)
+      print(f"choice: {pattern}: {i}, {j}")
+      for p1 in range(wave.shape[0]):
+        if p1 != pattern:
+          if wave[p1, i, j]:
+            wave, compatibility_matrix, propagation_stack = ban(wave, compatibility_matrix, propagation_stack, i, j, p1, adj_offsets, inverted_offsets)
+        #else:
+        #  print(f"{p1} == {pattern}")
+      #import pdb; pdb.set_trace()
+      #wave[:, i, j] = False
+      #wave[pattern, i, j] = True
+      if onObserve:
+        onObserve(wave)
+      print(wave)
+      #print("propagate")
+      propagate_with_stack(wave, adj_offsets, inverted_offsets, adj_matrix, propagation_stack, compatibility_matrix, periodic=periodic, onPropagate=onPropagate)
+      #propagate(wave, adj_offsets, adj_matrix, periodic=periodic, onPropagate=onPropagate)
+      if wave.sum() > wave.shape[1] * wave.shape[2]:
+        pass
+      else:
+        if onFinal:
+          onFinal(wave)
+        return numpy.argmax(wave, 0)
+      past_waves.append((wave.copy(), compatibility_matrix.copy()))
+    except Contradiction:
+      print("CONTRADICTION")
+      #import pdb; pdb.set_trace()
+      if backtracking and (len(past_waves) > 0):
+        if onBacktrack:
+          onBacktrack()
+        wave, compatibility_matrix = past_waves.pop()
+        wave[pattern, i, j] = False
+      else:
+        if onFinal:
+          onFinal(wave)
+        raise
+
+    depth += 1
 
 def run(wave, adj_offsets, adj_matrix, locationHeuristic, patternHeuristic, periodic=False, backtracking=False, onBacktrack=None, onChoice=None, onObserve=None, onPropagate=None, checkFeasible=None, onFinal=None, depth=0, depth_limit=None):
   #print("run.")
@@ -364,6 +561,7 @@ def run(wave, adj_offsets, adj_matrix, locationHeuristic, patternHeuristic, peri
     wave[pattern, i, j] = True
     if onObserve:
       onObserve(wave)
+
     propagate(wave, adj_offsets, adj_matrix, periodic=periodic, onPropagate=onPropagate)
     if wave.sum() > wave.shape[1] * wave.shape[2]:
       #return run(wave, adj, locationHeuristic, patternHeuristic, periodic, backtracking, onBacktrack)
