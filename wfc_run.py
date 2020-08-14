@@ -5,6 +5,7 @@ import time
 import wfc.wfc_control as wfc_control
 import xml.etree.ElementTree as ET
 import os
+from multiprocessing import Pool
 
 def string2bool(strn):
     if isinstance(strn, bool):
@@ -13,11 +14,11 @@ def string2bool(strn):
 
 def run_default(run_experiment=False):
     log_filename = f"log_{time.time()}"
-    xdoc = ET.ElementTree(file="samples_chessdots.xml")
-    default_allowed_attempts = 1
+    xdoc = ET.ElementTree(file="samples_original_redmaze.xml")
+    default_allowed_attempts = 10
     default_backtracking = False
     log_stats_to_output = wfc_control.make_log_stats()
-    visualize_experiment = True
+    visualize_experiment = False
 
     for xnode in xdoc.getroot():
         name = xnode.get('name', "NAME")
@@ -129,7 +130,7 @@ def run_default(run_experiment=False):
                                     {"loc": "entropy", "choice": "weighted", "backtracking": False,  "global": None},
                                     {"loc": "entropy", "choice": "random", "backtracking": False, "global": None},]
 
-            screenshots = 1
+            #screenshots = 1
             for experiment in run_instructions:
                 for x in range(screenshots):
                     print(f"-: {name} > {x}")
@@ -162,4 +163,6 @@ def run_default(run_experiment=False):
             # os.system('cp -rf "/content/wfc/output/*.tsv" "/content/drive/My Drive/wfc_exper/2"')
             # os.system('cp -r "/content/wfc/output" "/content/drive/My Drive/wfc_exper/2"')
 
-run_default(False)
+
+if __name__ == '__main__':
+  run_default(False)

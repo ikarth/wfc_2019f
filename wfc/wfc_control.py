@@ -10,6 +10,7 @@ import time
 import os
 import pathlib
 import json
+from multiprocessing import Pool
 
 from pycallgraph import PyCallGraph
 from pycallgraph.output import GraphvizOutput
@@ -356,19 +357,21 @@ def run_wfc_solver(filename, wave, adjacency_matrix, decode_patterns, number_of_
             #with PyCallGraph(output=GraphvizOutput(output_file=f"visualization/pycallgraph_{filename}_{timecode}.png")):
                 try:
                     solution = run_with_loop(wave.copy(),
-                                   direction_offsets,
-                                   adjacency_matrix,
-                                   locationHeuristic=location_heuristic,
-                                   patternHeuristic=pattern_heuristic,
-                                   periodic=output_periodic,
-                                   backtracking=backtracking,
-                                   onChoice=visualize_choice,
-                                   onBacktrack=visualize_backtracking,
-                                   onObserve=visualize_wave,
-                                   onPropagate=visualize_propagate,
-                                   onFinal=visualize_final,
-                                   checkFeasible=combinedConstraints
-                    )
+                                       direction_offsets,
+                                       adjacency_matrix,
+                                       locationHeuristic=location_heuristic,
+                                       patternHeuristic=pattern_heuristic,
+                                       periodic=output_periodic,
+                                       backtracking=backtracking,
+                                       onChoice=visualize_choice,
+                                       onBacktrack=visualize_backtracking,
+                                       onObserve=visualize_wave,
+                                       onPropagate=visualize_propagate,
+                                       onFinal=visualize_final,
+                                       checkFeasible=combinedConstraints,
+                                       use_a_stack=True
+                        )
+
                     if visualize_after:
                         stats = visualize_after()
                     #print(solution)
@@ -397,6 +400,7 @@ def run_wfc_solver(filename, wave, adjacency_matrix, decode_patterns, number_of_
                     if visualize_after:
                         stats = visualize_after()
                     stats.update({"outcome":"contradiction"})
+                    import pdb; pdb.set_trace()
         #profiler.dump_stats(f"logs/profile_{filename}_{timecode}.txt")
 
         outstats = {}
