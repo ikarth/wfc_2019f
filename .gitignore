@@ -1,1 +1,3 @@
-wfc/__pycache__/
+__pycache__
+/output/*
+/build
