@@ -6,6 +6,7 @@ matplotlib
 # Testing
 pytest
 scipy
+types-setuptools
 
 # Documentation.
 sphinx
