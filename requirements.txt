@@ -2,10 +2,10 @@ numpy
 hilbertcurve
 imageio
 matplotlib
+scipy
 
 # Testing
 pytest
-scipy
 types-setuptools
 
 # Documentation.
