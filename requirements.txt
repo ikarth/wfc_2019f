@@ -3,5 +3,9 @@ hilbertcurve
 imageio
 matplotlib
 
+# Testing
 pytest
+scipy
+
+# Documentation.
 sphinx
