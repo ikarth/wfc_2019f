@@ -1,23 +1,32 @@
 # -*- coding: utf-8 -*-
 """Base code to load commands from xml and run them."""
+from __future__ import annotations
 
 import time
+from typing import List, Literal, TypedDict, Union
 import wfc.wfc_control as wfc_control
 import xml.etree.ElementTree as ET
 import os
 
 
-def string2bool(strn):
+class RunInstructions(TypedDict):
+    loc: Literal["lexical", "hilbert", "spiral", "entropy", "anti-entropy", "simple", "random"]
+    choice: Literal["lexical", "rarest", "weighted", "random"]
+    backtracking: bool
+    global_constraint: Literal[False, "allpatterns"]
+
+
+def string2bool(strn: Union[bool, str]) -> bool:
     if isinstance(strn, bool):
         return strn
     return strn.lower() in ["true"]
 
 
-def run_default(run_experiment=False):
+def run_default(run_experiment: str = "") -> None:
     log_filename = f"log_{time.time()}"
     xdoc = ET.ElementTree(file="samples_reference.xml")
     default_allowed_attempts = 10
-    default_backtracking = False
+    default_backtracking = str(False)
     log_stats_to_output = wfc_control.make_log_stats()
 
     for xnode in xdoc.getroot():
@@ -33,10 +42,10 @@ def run_default(run_experiment=False):
             symmetry = int(xnode.get("symmetry", 8))
             ground = int(xnode.get("ground", 0))
             periodic_input = string2bool(
-                xnode.get("periodic", False)
+                xnode.get("periodic", "False")
             )  # Does the input wrap?
             periodic_output = string2bool(
-                xnode.get("periodic", False)
+                xnode.get("periodic", "False")
             )  # Do we want the output to wrap?
             generated_size = (int(xnode.get("width", 48)), int(xnode.get("height", 48)))
             screenshots = int(
@@ -51,88 +60,88 @@ def run_default(run_experiment=False):
             backtracking = string2bool(xnode.get("backtracking", default_backtracking))
             visualize_experiment = False
 
-            run_instructions = [
+            run_instructions: List[RunInstructions] = [
                 {
                     "loc": "entropy",
                     "choice": "weighted",
                     "backtracking": backtracking,
-                    "global": None,
+                    "global_constraint": False,
                 }
             ]
-            # run_instructions = [{"loc": "entropy", "choice": "weighted", "backtracking": True, "global": "allpatterns"}]
+            # run_instructions = [{"loc": "entropy", "choice": "weighted", "backtracking": True, "global_constraint": "allpatterns"}]
             if run_experiment:
                 run_instructions = [
                     {
                         "loc": "lexical",
                         "choice": "weighted",
                         "backtracking": backtracking,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "entropy",
                         "choice": "weighted",
                         "backtracking": backtracking,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "random",
                         "choice": "weighted",
                         "backtracking": False,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "lexical",
                         "choice": "random",
                         "backtracking": backtracking,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "entropy",
                         "choice": "random",
                         "backtracking": backtracking,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "random",
                         "choice": "random",
                         "backtracking": False,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "lexical",
                         "choice": "weighted",
                         "backtracking": True,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "entropy",
                         "choice": "weighted",
                         "backtracking": True,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "lexical",
                         "choice": "weighted",
                         "backtracking": True,
-                        "global": "allpatterns",
+                        "global_constraint": "allpatterns",
                     },
                     {
                         "loc": "entropy",
                         "choice": "weighted",
                         "backtracking": True,
-                        "global": "allpatterns",
+                        "global_constraint": "allpatterns",
                     },
                     {
                         "loc": "lexical",
                         "choice": "weighted",
                         "backtracking": False,
-                        "global": "allpatterns",
+                        "global_constraint": "allpatterns",
                     },
                     {
                         "loc": "entropy",
                         "choice": "weighted",
                         "backtracking": False,
-                        "global": "allpatterns",
+                        "global_constraint": "allpatterns",
                     },
                 ]
             if run_experiment == "heuristic":
@@ -141,43 +150,43 @@ def run_default(run_experiment=False):
                         "loc": "hilbert",
                         "choice": "weighted",
                         "backtracking": backtracking,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "spiral",
                         "choice": "weighted",
                         "backtracking": backtracking,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "entropy",
                         "choice": "weighted",
                         "backtracking": backtracking,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "anti-entropy",
                         "choice": "weighted",
                         "backtracking": backtracking,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "lexical",
                         "choice": "weighted",
                         "backtracking": backtracking,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "simple",
                         "choice": "weighted",
                         "backtracking": backtracking,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "random",
                         "choice": "weighted",
                         "backtracking": backtracking,
-                        "global": None,
+                        "global_constraint": False,
                     },
                 ]
             if run_experiment == "backtracking":
@@ -186,25 +195,25 @@ def run_default(run_experiment=False):
                         "loc": "entropy",
                         "choice": "weighted",
                         "backtracking": True,
-                        "global": "allpatterns",
+                        "global_constraint": "allpatterns",
                     },
                     {
                         "loc": "entropy",
                         "choice": "weighted",
                         "backtracking": False,
-                        "global": "allpatterns",
+                        "global_constraint": "allpatterns",
                     },
                     {
                         "loc": "entropy",
                         "choice": "weighted",
                         "backtracking": True,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "entropy",
                         "choice": "weighted",
                         "backtracking": False,
-                        "global": None,
+                        "global_constraint": False,
                     },
                 ]
             if run_experiment == "backtracking_heuristic":
@@ -213,49 +222,49 @@ def run_default(run_experiment=False):
                         "loc": "lexical",
                         "choice": "weighted",
                         "backtracking": True,
-                        "global": "allpatterns",
+                        "global_constraint": "allpatterns",
                     },
                     {
                         "loc": "lexical",
                         "choice": "weighted",
                         "backtracking": False,
-                        "global": "allpatterns",
+                        "global_constraint": "allpatterns",
                     },
                     {
                         "loc": "lexical",
                         "choice": "weighted",
                         "backtracking": True,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "lexical",
                         "choice": "weighted",
                         "backtracking": False,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "random",
                         "choice": "weighted",
                         "backtracking": True,
-                        "global": "allpatterns",
+                        "global_constraint": "allpatterns",
                     },
                     {
                         "loc": "random",
                         "choice": "weighted",
                         "backtracking": False,
-                        "global": "allpatterns",
+                        "global_constraint": "allpatterns",
                     },
                     {
                         "loc": "random",
                         "choice": "weighted",
                         "backtracking": True,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "random",
                         "choice": "weighted",
                         "backtracking": False,
-                        "global": None,
+                        "global_constraint": False,
                     },
                 ]
             if run_experiment == "choices":
@@ -264,19 +273,19 @@ def run_default(run_experiment=False):
                         "loc": "entropy",
                         "choice": "rarest",
                         "backtracking": False,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "entropy",
                         "choice": "weighted",
                         "backtracking": False,
-                        "global": None,
+                        "global_constraint": False,
                     },
                     {
                         "loc": "entropy",
                         "choice": "random",
                         "backtracking": False,
-                        "global": None,
+                        "global_constraint": False,
                     },
                 ]
 
@@ -296,7 +305,7 @@ def run_default(run_experiment=False):
                         loc_heuristic=experiment["loc"],
                         choice_heuristic=experiment["choice"],
                         backtracking=experiment["backtracking"],
-                        global_constraint=experiment["global"],
+                        global_constraint=experiment["global_constraint"],
                         log_filename=log_filename,
                         log_stats_to_output=log_stats_to_output,
                         visualize=visualize_experiment,

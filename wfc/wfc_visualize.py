@@ -1,13 +1,15 @@
 "Visualize the patterns into tiles and so on."
+from __future__ import annotations
 
 import math
 import pathlib
 import itertools
-import imageio
-import matplotlib
+import imageio  # type: ignore
+import matplotlib  # type: ignore
 import struct
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
+from numpy.typing import NDArray
 from .wfc_patterns import pattern_grid_to_tiles
 
 ## Helper functions
@@ -75,7 +77,7 @@ def make_solver_loggers(filename, stats={}):
         nonlocal counter_wave
         counter_wave += 1
 
-    def backtrack_count():
+    def backtrack_count() -> None:
         nonlocal counter_backtracks
         counter_backtracks += 1
 
@@ -119,8 +121,8 @@ def make_solver_loggers(filename, stats={}):
 
 
 def make_solver_visualizers(
-    filename,
-    wave,
+    filename: str,
+    wave: NDArray[np.bool_],
     decode_patterns=None,
     pattern_catalog=None,
     tile_catalog=None,
@@ -314,7 +316,7 @@ def make_solver_visualizers(
                 fig_list,
             )
 
-    def backtrack_vis():
+    def backtrack_vis() -> None:
         nonlocal vis_count
         nonlocal pattern_solution
         nonlocal backtracking_count
