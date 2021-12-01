@@ -31,3 +31,23 @@ jobs:
         run: pip install -r requirements.txt
       - name: Test with pytest
         run: pytest
+
+  wfc_run:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+      - name: Build package
+        run: pip install --editable .
+      - name: Run wfc_run.py
+        run: python ./wfc_run.py
+      - name: Package output folder
+        run: tar -cf --format=ustar wfc-output.tar output/
+      - uses: actions/upload-artifact@v2
+        with:
+          name: wfc-output
+          path: wfc-output.tar
+          retention-days: 7

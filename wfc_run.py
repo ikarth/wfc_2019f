@@ -316,13 +316,13 @@ def run_default(run_experiment: str = "") -> None:
                     else:
                         print(solution)
 
-            # These are included for my colab experiments, remove them if you're not me
-            os.system(
-                'cp -rf "/content/wfc/output/*.tsv" "/content/drive/My Drive/wfc_exper/2"'
-            )
-            os.system(
-                'cp -r "/content/wfc/output" "/content/drive/My Drive/wfc_exper/2"'
-            )
+            if False:  # These are included for my colab experiments, remove them if you're not me
+                os.system(
+                    'cp -rf "/content/wfc/output/*.tsv" "/content/drive/My Drive/wfc_exper/2"'
+                )
+                os.system(
+                    'cp -r "/content/wfc/output" "/content/drive/My Drive/wfc_exper/2"'
+                )
 
 
 run_default("choice")
