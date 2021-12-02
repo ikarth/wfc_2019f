@@ -42,8 +42,16 @@ jobs:
           python-version: 3.x
       - name: Build package
         run: pip install --editable .
-      - name: Run wfc_run.py
-        run: python ./wfc_run.py
+      - name: Run all experiments
+        run: |
+          python ./wfc_run.py -e simple -s samples.xml
+          python ./wfc_run.py -e choice -s samples.xml
+          python ./wfc_run.py -e choices -s samples.xml
+          python ./wfc_run.py -e heuristic -s samples.xml
+          python ./wfc_run.py -e backtracking -s samples.xml
+          python ./wfc_run.py -e backtracking_heuristic -s samples.xml
+      - name: Generate reference images
+        run: python ./wfc_run.py -e simple -s samples_reference.xml
       - name: Package output folder
         run: tar -cf --format=ustar wfc-output.tar output/
       - uses: actions/upload-artifact@v2

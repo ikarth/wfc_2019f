@@ -2,6 +2,7 @@
 """Base code to load commands from xml and run them."""
 from __future__ import annotations
 
+import argparse
 import time
 from typing import List, Literal, TypedDict, Union
 import wfc.wfc_control as wfc_control
@@ -22,9 +23,9 @@ def string2bool(strn: Union[bool, str]) -> bool:
     return strn.lower() in ["true"]
 
 
-def run_default(run_experiment: str = "") -> None:
+def run_default(run_experiment: str = "simple", samples: str = "samples_reference.xml") -> None:
     log_filename = f"log_{time.time()}"
-    xdoc = ET.ElementTree(file="samples_reference.xml")
+    xdoc = ET.ElementTree(file=samples)
     default_allowed_attempts = 10
     default_backtracking = str(False)
     log_stats_to_output = wfc_control.make_log_stats()
@@ -49,7 +50,7 @@ def run_default(run_experiment: str = "") -> None:
             )  # Do we want the output to wrap?
             generated_size = (int(xnode.get("width", 48)), int(xnode.get("height", 48)))
             screenshots = int(
-                xnode.get("screenshots", 3)
+                xnode.get("screenshots", 1)
             )  # Number of times to run the algorithm, will produce this many distinct outputs
             iteration_limit = int(
                 xnode.get("iteration_limit", 0)
@@ -60,7 +61,7 @@ def run_default(run_experiment: str = "") -> None:
             backtracking = string2bool(xnode.get("backtracking", default_backtracking))
             visualize_experiment = False
 
-            run_instructions: List[RunInstructions] = [
+            run_instructions: List[RunInstructions] = [  # simple
                 {
                     "loc": "entropy",
                     "choice": "weighted",
@@ -69,7 +70,7 @@ def run_default(run_experiment: str = "") -> None:
                 }
             ]
             # run_instructions = [{"loc": "entropy", "choice": "weighted", "backtracking": True, "global_constraint": "allpatterns"}]
-            if run_experiment:
+            if run_experiment == "choice":
                 run_instructions = [
                     {
                         "loc": "lexical",
@@ -324,10 +325,28 @@ def run_default(run_experiment: str = "") -> None:
                     'cp -r "/content/wfc/output" "/content/drive/My Drive/wfc_exper/2"'
                 )
 
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Geneates examples from bundled samples which will be saved to the output/ directory.",
+    )
+    parser.add_argument(
+        "-e", "--experiment",
+        type=str,
+        default="simple",
+        choices=["simple", "choice", "choices", "heuristic", "backtracking", "backtracking_heuristic"],
+        help="Which experiment to run, defaults to simple.",
+    )
+    parser.add_argument(
+        "-s", "--samples",
+        type=str,
+        required=True,
+        metavar="XML_FILE",
+        default="samples_reference.xml",
+        help="An XML file with input data.  If unsure then use '-s samples_reference.xml'",
+    )
+    args = parser.parse_args()
+    run_default(run_experiment=args.experiment, samples=args.samples)
 
-run_default("choice")
-run_default("backtracking")
-run_default("heuristic")
-run_default()
-run_default("choices")
-run_default("backtracking")
+
+if __name__ == "__main__":
+    main()
