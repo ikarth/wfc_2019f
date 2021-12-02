@@ -4,6 +4,7 @@ from __future__ import annotations
 import math
 import pathlib
 import itertools
+from typing import Dict, Tuple
 import imageio  # type: ignore
 import matplotlib  # type: ignore
 import struct
@@ -412,7 +413,12 @@ def figure_wave_patterns(filename, pattern_left_count, max_count):
     plt.close(fig=visfig)
 
 
-def tile_grid_to_average(tile_grid, tile_catalog, tile_size, color_channels=3):
+def tile_grid_to_average(
+    tile_grid: NDArray[np.int64],
+    tile_catalog: Dict[int, NDArray[np.int64]],
+    tile_size: Tuple[int, int],
+    color_channels: int = 3,
+) -> NDArray[np.int64]:
     """
   Takes a masked array of tile grid stacks and transforms it into an image, taking
   the average colors of the tiles in tile_catalog.
@@ -448,8 +454,13 @@ def tile_grid_to_average(tile_grid, tile_catalog, tile_size, color_channels=3):
 
 
 def tile_grid_to_image(
-    tile_grid, tile_catalog, tile_size, visualize=False, partial=False, color_channels=3
-):
+    tile_grid: NDArray[np.int64],
+    tile_catalog: Dict[int, NDArray[np.int64]],
+    tile_size: Tuple[int, int],
+    visualize: bool = False,
+    partial: bool = False,
+    color_channels: int = 3,
+) -> NDArray[np.int64]:
     """
     Takes a tile_grid and transforms it into an image, using the information
     in tile_catalog. We use tile_size to figure out the size the new image
@@ -570,7 +581,12 @@ def figure_pattern_catalog(
     plt.close()
 
 
-def render_tiles_to_output(tile_grid, tile_catalog, tile_size, output_filename):
+def render_tiles_to_output(
+    tile_grid: NDArray[np.int64],
+    tile_catalog: Dict[int, NDArray[np.int64]],
+    tile_size: Tuple[int, int],
+    output_filename: str,
+) -> None:
     img = tile_grid_to_image(tile_grid.T, tile_catalog, tile_size)
     imageio.imwrite(output_filename, img.astype(np.uint8))
 
