@@ -1,5 +1,5 @@
 numpy
-hilbertcurve
+hilbertcurve>=2
 imageio
 matplotlib
 scipy
