@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import argparse
-import time
+import datetime
 from typing import List, Literal, TypedDict, Union
 import wfc.wfc_control as wfc_control
 import xml.etree.ElementTree as ET
@@ -24,7 +24,7 @@ def string2bool(strn: Union[bool, str]) -> bool:
 
 
 def run_default(run_experiment: str = "simple", samples: str = "samples_reference.xml") -> None:
-    log_filename = f"log_{time.time()}"
+    log_filename = f"log_{datetime.datetime.now().isoformat()}".replace(":", ".")
     xdoc = ET.ElementTree(file=samples)
     default_allowed_attempts = 10
     default_backtracking = str(False)
