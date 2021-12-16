@@ -22,7 +22,7 @@ The arguments it accepts are:
 - `attempt_limit=10`: stop after this many tries
 - `output_periodic=True`: the output wraps at the edges
 - `input_periodic=True`: the input wraps at the edges
-- `loc_heuristic="lexical"`: what location heuristic to use; `entropy` is the original WFC behavior. The heuristics that are implemented are `lexical`, `hilbert`, `spiral`, `entropy`, `anti-entropy`, `simple`, `random`, but when in doubt stick with `entropy`.
+- `loc_heuristic="entropy"`: what location heuristic to use; `entropy` is the original WFC behavior. The heuristics that are implemented are `lexical`, `hilbert`, `spiral`, `entropy`, `anti-entropy`, `simple`, `random`, but when in doubt stick with `entropy`.
 - `choice_heuristic="lexical"`: what choice heuristic to use; `weighted` is the original WFC behavior.
 - `visualize=True`: write intermediate images to disk?
 - `global_constraint=False`: what global constraint to use. Currently the only one implemented is `allpatterns`
