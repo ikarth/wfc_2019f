@@ -1,7 +1,12 @@
 numpy
-hilbertcurve
+hilbertcurve>=2
 imageio
 matplotlib
+scipy
 
+# Testing
 pytest
+types-setuptools
+
+# Documentation.
 sphinx

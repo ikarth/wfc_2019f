@@ -1,0 +1,59 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+name: Python package
+
+on:
+  push:
+  pull_request:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  mypy:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Python dependencies
+        run: pip install mypy -r requirements.txt
+      - name: Mypy
+        uses: liskin/gh-problem-matcher-wrap@v1
+        with:
+          linters: mypy
+          run: mypy --show-column-numbers .
+
+  pytest:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+      - name: Test with pytest
+        run: pytest
+
+  wfc_run:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+      - name: Build package
+        run: pip install --editable .
+      - name: Run all experiments
+        run: |
+          python ./wfc_run.py -e simple -s samples.xml
+          python ./wfc_run.py -e choice -s samples.xml
+          python ./wfc_run.py -e choices -s samples.xml
+          python ./wfc_run.py -e heuristic -s samples.xml
+          python ./wfc_run.py -e backtracking -s samples.xml
+          python ./wfc_run.py -e backtracking_heuristic -s samples.xml
+      - name: Package output folder
+        run: tar -cf wfc-output.tar --format=ustar output/
+      - uses: actions/upload-artifact@v2
+        with:
+          name: wfc-output
+          path: wfc-output.tar
+          retention-days: 7
