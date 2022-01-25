@@ -43,7 +43,7 @@ pytest
 python setup.py build_sphinx
 ```
 
-With linux the doculentation can be displayed with:
+With linux the documentation can be displayed with:
 
 ```
 xdg-open build/sphinx/index.html
