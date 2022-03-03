@@ -249,7 +249,7 @@ def make_solver_visualizers(
                 )
             img = tile_grid_to_image(solution_tile_grid.T, tile_catalog, tile_size)
 
-            masked_tile_wave = np.ma.MaskedArray(
+            masked_tile_wave: np.ma.MaskedArray = np.ma.MaskedArray(
                 data=tile_wave, mask=(wave == False), dtype=np.int64
             )
             masked_img = tile_grid_to_average(
@@ -417,7 +417,7 @@ def figure_wave_patterns(filename, pattern_left_count, max_count):
 
 
 def tile_grid_to_average(
-    tile_grid: NDArray[np.int64],
+    tile_grid: np.ma.MaskedArray,
     tile_catalog: Dict[int, NDArray[np.int64]],
     tile_size: Tuple[int, int],
     color_channels: int = 3,
