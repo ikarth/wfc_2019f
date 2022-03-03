@@ -13,7 +13,7 @@ If you want direct control over running WFC, call `wfc_control.execute_wfc()`.
 
 The arguments it accepts are:
 
-- `filename`: path to the input image file
+- `filename=None`: path to the input image file, this is mostly for internal use and should be left as `None`, set `image` instead.
 - `tile_size=1`: size of the tiles it uses (1 is fine for pixel images, larger is for things like a Super Metroid map)
 - `pattern_width=2`: size of the patterns; usually 2 or 3 because bigger gets slower and
 - `rotations=8`: how many reflections and/or rotations to use with the patterns
@@ -30,6 +30,7 @@ The arguments it accepts are:
 - `log_filename="log"`: what should the log file be named?
 - `logging=True`: should we write to a log file?
 - `log_stats_to_output=None`
+- `image`: an array of pixel data, typically in the shape: (height, width, rgb)
 
 ## Test
 
