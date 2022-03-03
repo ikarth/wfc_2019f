@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import logging
 from typing import List, Literal, TypedDict, Union
 import wfc.wfc_control as wfc_control
 import xml.etree.ElementTree as ET
@@ -326,6 +327,7 @@ def run_default(run_experiment: str = "simple", samples: str = "samples_referenc
                 )
 
 def main() -> None:
+    logging.basicConfig(level=logging.DEBUG)
     parser = argparse.ArgumentParser(
         description="Geneates examples from bundled samples which will be saved to the output/ directory.",
     )
