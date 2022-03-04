@@ -458,24 +458,25 @@ def tile_grid_to_average(
 
 def tile_grid_to_image(
     tile_grid: NDArray[np.int64],
-    tile_catalog: Dict[int, NDArray[np.int64]],
+    tile_catalog: Dict[int, NDArray[np.integer]],
     tile_size: Tuple[int, int],
     visualize: bool = False,
     partial: bool = False,
     color_channels: int = 3,
-) -> NDArray[np.int64]:
+) -> NDArray[np.integer]:
     """
     Takes a tile_grid and transforms it into an image, using the information
     in tile_catalog. We use tile_size to figure out the size the new image
     should be, and visualize for displaying partial tile patterns.
     """
+    tile_dtype = next(iter(tile_catalog.values())).dtype
     new_img = np.zeros(
         (
             tile_grid.shape[0] * tile_size[0],
             tile_grid.shape[1] * tile_size[1],
             color_channels,
         ),
-        dtype=np.int64,
+        dtype=tile_dtype,
     )
     if partial and (len(tile_grid.shape)) > 2:
         # TODO: implement rendering partially completed solution
@@ -586,7 +587,7 @@ def figure_pattern_catalog(
 
 def render_tiles_to_output(
     tile_grid: NDArray[np.int64],
-    tile_catalog: Dict[int, NDArray[np.int64]],
+    tile_catalog: Dict[int, NDArray[np.integer]],
     tile_size: Tuple[int, int],
     output_filename: str,
 ) -> None:
