@@ -1,6 +1,7 @@
 "Visualize the patterns into tiles and so on."
 from __future__ import annotations
 
+import logging
 import math
 import pathlib
 import itertools
@@ -12,6 +13,8 @@ import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
 from numpy.typing import NDArray
 from .wfc_patterns import pattern_grid_to_tiles
+
+logger = logging.getLogger(__name__)
 
 ## Helper functions
 RGB_CHANNELS = 3
@@ -87,7 +90,7 @@ def make_solver_loggers(filename, stats={}):
         counter_propagate += 1
 
     def final_count(wave):
-        print(
+        logger.info(
             f"{filename}: choices: {counter_choices}, wave:{counter_wave}, backtracks: {counter_backtracks}, propagations: {counter_propagate}"
         )
         stats.update(
@@ -130,7 +133,7 @@ def make_solver_visualizers(
     tile_size=[1, 1],
 ):
     """Construct visualizers for displaying the intermediate solver status"""
-    print(wave.shape)
+    logger.debug(wave.shape)
     pattern_total_count = wave.shape[0]
     resolution_order = np.full(
         wave.shape[1:], np.nan
@@ -216,7 +219,7 @@ def make_solver_visualizers(
         resolved_by_propagation = (
             np.ma.mask_or(pattern_left_count > 1, resolution_method != 0) != 1
         )
-        # print(resolved_by_propagation)
+        # logger.debug(resolved_by_propagation)
         resolution_method[resolved_by_propagation] = 1
         resolution_order[resolved_by_propagation] = choice_count
         backtracking_order[resolved_by_propagation] = backtracking_count
@@ -246,7 +249,7 @@ def make_solver_visualizers(
                 )
             img = tile_grid_to_image(solution_tile_grid.T, tile_catalog, tile_size)
 
-            masked_tile_wave = np.ma.MaskedArray(
+            masked_tile_wave: np.ma.MaskedArray = np.ma.MaskedArray(
                 data=tile_wave, mask=(wave == False), dtype=np.int64
             )
             masked_img = tile_grid_to_average(
@@ -414,7 +417,7 @@ def figure_wave_patterns(filename, pattern_left_count, max_count):
 
 
 def tile_grid_to_average(
-    tile_grid: NDArray[np.int64],
+    tile_grid: np.ma.MaskedArray,
     tile_catalog: Dict[int, NDArray[np.int64]],
     tile_size: Tuple[int, int],
     color_channels: int = 3,
@@ -455,24 +458,25 @@ def tile_grid_to_average(
 
 def tile_grid_to_image(
     tile_grid: NDArray[np.int64],
-    tile_catalog: Dict[int, NDArray[np.int64]],
+    tile_catalog: Dict[int, NDArray[np.integer]],
     tile_size: Tuple[int, int],
     visualize: bool = False,
     partial: bool = False,
     color_channels: int = 3,
-) -> NDArray[np.int64]:
+) -> NDArray[np.integer]:
     """
     Takes a tile_grid and transforms it into an image, using the information
     in tile_catalog. We use tile_size to figure out the size the new image
     should be, and visualize for displaying partial tile patterns.
     """
+    tile_dtype = next(iter(tile_catalog.values())).dtype
     new_img = np.zeros(
         (
             tile_grid.shape[0] * tile_size[0],
             tile_grid.shape[1] * tile_size[1],
             color_channels,
         ),
-        dtype=np.int64,
+        dtype=tile_dtype,
     )
     if partial and (len(tile_grid.shape)) > 2:
         # TODO: implement rendering partially completed solution
@@ -583,7 +587,7 @@ def figure_pattern_catalog(
 
 def render_tiles_to_output(
     tile_grid: NDArray[np.int64],
-    tile_catalog: Dict[int, NDArray[np.int64]],
+    tile_catalog: Dict[int, NDArray[np.integer]],
     tile_size: Tuple[int, int],
     output_filename: str,
 ) -> None:
@@ -616,8 +620,8 @@ def blit(destination, sprite, upper_left, layer=False, check=False):
                         ):
                             destination[i, j] = sprite[i_index, j_index]
                         else:
-                            print(
-                                "ERROR, mismatch: destination[{i},{j}] = {destination[i, j]}, sprite[{i_index}, {j_index}] = {sprite[i_index, j_index]}"
+                            logger.error(
+                                "mismatch: destination[{i},{j}] = {destination[i, j]}, sprite[{i_index}, {j_index}] = {sprite[i_index, j_index]}"
                             )
                     else:
                         destination[i, j] = sprite[i_index, j_index]
@@ -657,11 +661,11 @@ def validate_adjacency(
         check=True,
     )
     if not np.array_equiv(preview_adj_a_first, preview_adj_b_first):
-        print(adj_rel)
-        print(pattern_a)
-        print(pattern_b)
-        print(preview_adj_a_first)
-        print(preview_adj_b_first)
+        logger.debug(adj_rel)
+        logger.debug(pattern_a)
+        logger.debug(pattern_b)
+        logger.debug(preview_adj_a_first)
+        logger.debug(preview_adj_b_first)
         raise InvalidAdjacency
 
 
@@ -748,4 +752,4 @@ def figure_adjacencies(
 
 
 #    except ValueError as e:
-#        print(e)
+#        logger.exception(e)

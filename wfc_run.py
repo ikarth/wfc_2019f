@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import logging
 from typing import List, Literal, TypedDict, Union
 import wfc.wfc_control as wfc_control
 import xml.etree.ElementTree as ET
@@ -293,29 +294,29 @@ def run_default(run_experiment: str = "simple", samples: str = "samples_referenc
             for experiment in run_instructions:
                 for x in range(screenshots):
                     print(f"-: {name} > {x}")
-                    solution = wfc_control.execute_wfc(
-                        name,
-                        tile_size=tile_size,
-                        pattern_width=pattern_width,
-                        rotations=symmetry,
-                        output_size=generated_size,
-                        ground=ground,
-                        attempt_limit=allowed_attempts,
-                        output_periodic=periodic_output,
-                        input_periodic=periodic_input,
-                        loc_heuristic=experiment["loc"],
-                        choice_heuristic=experiment["choice"],
-                        backtracking=experiment["backtracking"],
-                        global_constraint=experiment["global_constraint"],
-                        log_filename=log_filename,
-                        log_stats_to_output=log_stats_to_output,
-                        visualize=visualize_experiment,
-                        logging=True,
-                    )
-                    if solution is None:
-                        print(None)
-                    else:
+                    try:
+                        solution = wfc_control.execute_wfc(
+                            name,
+                            tile_size=tile_size,
+                            pattern_width=pattern_width,
+                            rotations=symmetry,
+                            output_size=generated_size,
+                            ground=ground,
+                            attempt_limit=allowed_attempts,
+                            output_periodic=periodic_output,
+                            input_periodic=periodic_input,
+                            loc_heuristic=experiment["loc"],
+                            choice_heuristic=experiment["choice"],
+                            backtracking=experiment["backtracking"],
+                            global_constraint=experiment["global_constraint"],
+                            log_filename=log_filename,
+                            log_stats_to_output=log_stats_to_output,
+                            visualize=visualize_experiment,
+                            logging=True,
+                        )
                         print(solution)
+                    except Exception as exc:
+                        print(f"Skipped because: {exc}")
 
             if False:  # These are included for my colab experiments, remove them if you're not me
                 os.system(
@@ -326,6 +327,7 @@ def run_default(run_experiment: str = "simple", samples: str = "samples_referenc
                 )
 
 def main() -> None:
+    logging.basicConfig(level=logging.DEBUG)
     parser = argparse.ArgumentParser(
         description="Geneates examples from bundled samples which will be saved to the output/ directory.",
     )
