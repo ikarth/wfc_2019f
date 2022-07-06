@@ -66,6 +66,7 @@ class Solver:
         """Is True if the wave has been fully resolved."""
         return self.wave.sum() == self.wave.shape[1] * self.wave.shape[2] and (self.wave.sum(axis=0) == 1).all()
 
+    # Important
     def solve_next(
         self,
         location_heuristic: Callable[[NDArray[numpy.bool_]], Tuple[int, int]],
@@ -356,7 +357,7 @@ def make_global_use_all_patterns() -> Callable[[NDArray[np.bool_]], bool]:
 #####################################
 # Solver
 
-
+# Super important
 def propagate(
     wave: NDArray[np.bool_],
     adj: Mapping[Tuple[int, int], NDArray[numpy.bool_]],

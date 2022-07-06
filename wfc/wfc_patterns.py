@@ -1,4 +1,5 @@
 "Extract patterns from grids of tiles."
+#This module extracts patterns from the input image. The patterns will later be used to setup adjacency rules.
 from __future__ import annotations
 
 import logging

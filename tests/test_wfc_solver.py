@@ -1,3 +1,6 @@
+#This module contains the class soler, which uses the adjacency information to decide the configurations of the tiles.
+# The module also contains a few error messages. There's "Contradiction", "StopEarly",and"TimedOut." They're all pretty self
+# explanatory. The module has many other functions.
 from __future__ import annotations
 
 from typing import Any, Dict, List, Set, Tuple

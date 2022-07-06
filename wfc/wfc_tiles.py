@@ -1,4 +1,5 @@
 """Breaks an image into consituant tiles."""
+#This module displays how the algorithm breaks up the image into equally-sized tiles for examination.
 from __future__ import annotations
 
 from typing import Dict, Tuple

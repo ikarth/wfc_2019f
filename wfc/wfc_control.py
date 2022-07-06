@@ -1,7 +1,14 @@
-from __future__ import annotations
+#This module is the central module that imports all other 
+#modules and actually runs the algorithm from start to finish.
 
+#future is a built in python module, has to do with keeping the code consistent with future versions of python
+#annotations enables postponed evaluation
+from __future__ import annotations
+#self explanatory
 import datetime
+#built in python module that imports these classes and variables
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+#the next 4 modules were all created by the programmer
 from .wfc_tiles import make_tile_catalog
 from .wfc_patterns import (
     pattern_grid_to_tiles,
@@ -78,7 +85,7 @@ def make_log_stats() -> Callable[[Dict[str, Any], str], None]:
 
     return log_stats
 
-
+#This function launches the algorithm. 
 def execute_wfc(
     filename: Optional[str] = None,
     tile_size: int = 1,
@@ -357,6 +364,7 @@ def execute_wfc(
     solution_tile_grid = None
     logger.debug("solving...")
     attempts = 0
+    # kinda important
     while attempts < attempt_limit:
         attempts += 1
         time_solve_start = time.perf_counter()
@@ -365,6 +373,7 @@ def execute_wfc(
         # with profiler:
         # with PyCallGraph(output=GraphvizOutput(output_file=f"visualization/pycallgraph_{filename}_{timecode}.png")):
         try:
+            # pretty important (see wfc_solver)
             solution = run(
                 wave.copy(),
                 adjacency_matrix,
@@ -441,3 +450,4 @@ def execute_wfc(
             return tile_grid_to_image(solution_tile_grid, tile_catalog, (tile_size, tile_size))
 
     raise TimedOut("Attempt limit exceeded.")
+ 

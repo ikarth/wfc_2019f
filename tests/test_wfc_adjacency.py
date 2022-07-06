@@ -1,4 +1,5 @@
 """Convert input data to adjacency information"""
+#This module converts the patterns previously detected in wfc_patterns.py unto adjacency information and rules.
 from __future__ import annotations
 
 import imageio  # type: ignore
