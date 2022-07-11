@@ -86,9 +86,11 @@ def make_log_stats() -> Callable[[Dict[str, Any], str], None]:
     return log_stats
 
 #This function launches the algorithm. 
+# execute_wfc shows all the parameters that the algorithm has 
+#and displays the values that the user has set for them.
 def execute_wfc(
     filename: Optional[str] = None,
-    tile_size: int = 1,
+    tile_size: int = 3,
     pattern_width: int = 2,
     rotations: int = 8,
     output_size: Tuple[int, int] = (48, 48),
@@ -115,6 +117,8 @@ def execute_wfc(
 
     rotations -= 1  # change to zero-based
 
+    #all the parameters are between "def execute_wfc" and here.
+    #The parameters that were inputted by the user are being 
     input_stats = {
         "filename": str(filename),
         "tile_size": tile_size,
@@ -141,6 +145,12 @@ def execute_wfc(
         raise TypeError("An image must be given.")
 
     # TODO: generalize this to more than the four cardinal directions
+    #I'm guessing the direction_offsets is the reason why the 
+    #algorithm wouldn't work well with a voronoi tessalation input image?
+    #The algorithm is built so that it breaks up images into equally sized
+    #square tiles, but the voronoi has shapes and sizes that aren't very uniform.
+    #Thus, I have to modify the algorithm to be able to go in diagonal directions
+    #I'm guessing here so I could be totally wrong :/
     direction_offsets = list(enumerate([(0, -1), (1, 0), (0, 1), (-1, 0)]))
 
     tile_catalog, tile_grid, _code_list, _unique_tiles = make_tile_catalog(image, tile_size)
@@ -365,8 +375,13 @@ def execute_wfc(
     logger.debug("solving...")
     attempts = 0
     # kinda important
+    #The 2 lines below this one set a counter for the 
+    # number of times the algorithm retries, It keeps trying over and
+    #over again until the attempts reaches the attempt limit
     while attempts < attempt_limit:
         attempts += 1
+        #This, I think, is setting a timer that will record how long it
+        #took for the algorithm to run 
         time_solve_start = time.perf_counter()
         stats = {}
         # profiler = pprofile.Profile()
@@ -406,10 +421,14 @@ def execute_wfc(
                     (tile_size, tile_size),
                     output_destination + filename + "_" + timecode + ".png",
                 )
+            #this is where the timer stops counting
+            #these next 3 classes ("Contradiction", 
+            # "StopEarly",and"TimedOut") are kinda self-explanatory.
 
             time_solve_end = time.perf_counter()
             stats.update({"outcome": "success"})
         except StopEarly:
+        
             logger.debug("Skipping...")
             stats.update({"outcome": "skipped"})
             raise

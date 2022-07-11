@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple
 import numpy as np
-from numpy import  numpytyping
+from numpy import typing
 from numpy.typing import NDArray
 
 def adjacency_extraction(

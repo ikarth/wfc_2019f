@@ -2,7 +2,7 @@
 """Base code to load commands from xml and run them."""
 #This module is the base code that instructs the AI about what to do in terms of overall behavior.
 # For example, in this module, a limit to the number of iterations is set (iteration_limit), 
-# the # of attempts the AI is allowed to run (allowed_attempts) is set, and the AI is given the ability to
+# the # of attempts the program is allowed to run (allowed_attempts) is set, and the AI is given the ability to
 # backtrack (backtracking).
 from __future__ import annotations
 

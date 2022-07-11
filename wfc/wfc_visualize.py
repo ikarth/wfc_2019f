@@ -130,7 +130,7 @@ def make_solver_visualizers(
     decode_patterns=None,
     pattern_catalog=None,
     tile_catalog=None,
-    tile_size=[1, 1],
+    tile_size=[3, 3],
 ):
     """Construct visualizers for displaying the intermediate solver status"""
     logger.debug(wave.shape)
