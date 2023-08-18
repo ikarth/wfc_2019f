@@ -18,6 +18,7 @@ dependencies  = [
     "imageio",
     "matplotlib",
     "numpy",
+    "scipy"
 ]
 
 [project.optional-dependencies]
