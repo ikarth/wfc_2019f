@@ -7,6 +7,17 @@ This is my research implementation of WaveFunctionCollapse in Python. It has two
 
 For more general-purpose WFC information, the original reference repository remains the best resource: https://github.com/mxgmn/WaveFunctionCollapse
 
+## Installing
+
+```
+git clone https://github.com/ikarth/wfc_2019f.git
+cd wfc_2019f
+conda create -n wfc2019 python=3.10
+conda activate wfc2019
+pip install -r requirements.txt
+python wfc_run.py -s samples_reference.xml
+```
+
 ## Running WFC
 
 If you want direct control over running WFC, call `wfc_control.execute_wfc()`.
